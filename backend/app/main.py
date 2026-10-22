@@ -22,9 +22,11 @@ app = FastAPI(
     openapi_url=None if settings.ENVIRONMENT == "production" else "/openapi.json"
 )
 
-# Security Headers Middleware
+# Security Headers Middleware (skips OPTIONS preflights to prevent header collision)
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
+    if request.method == "OPTIONS":
+        return await call_next(request)
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
@@ -32,13 +34,16 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
     return response
 
-# CORS Middleware
+# CORS Middleware (outermost middleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
+    allow_origin_regex=r"^https://([a-zA-Z0-9_-]+\.)?vercel\.app$|^https://([a-zA-Z0-9_-]+\.)?onrender\.com$",
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=86400,
 )
 
 # Include Routers
