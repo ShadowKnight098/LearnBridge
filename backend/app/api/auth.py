@@ -9,7 +9,7 @@ from app.core.database import get_db
 from app.core.security import verify_password, create_access_token, create_refresh_token, decode_token
 from app.core.dependencies import get_current_user
 from app.models import User, Class, ClassStudent, StudentProfile
-from app.schemas.auth import Token, LoginRequest, StudentLoginRequest, RefreshTokenRequest
+from app.schemas.auth import Token, LoginRequest, StudentLoginRequest, RefreshTokenRequest, UserBasic
 from app.schemas.users import UserResponse
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -46,7 +46,18 @@ async def login(credentials: LoginRequest, db: AsyncSession = Depends(get_db)):
     access_token = create_access_token(data={"sub": user.id, "role": user.role, "username": user.username})
     refresh_token = create_refresh_token(data={"sub": user.id, "role": user.role})
 
-    return Token(access_token=access_token, refresh_token=refresh_token)
+    return Token(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        user=UserBasic(
+            id=user.id,
+            role=user.role,
+            username=user.username,
+            name=user.name,
+            language=user.language,
+            class_id=None
+        )
+    )
 
 
 @router.post("/student-login", response_model=Token)
@@ -99,7 +110,18 @@ async def student_login(credentials: StudentLoginRequest, db: AsyncSession = Dep
         data={"sub": matched_student.id, "role": matched_student.role}
     )
 
-    return Token(access_token=access_token, refresh_token=refresh_token)
+    return Token(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        user=UserBasic(
+            id=matched_student.id,
+            role=matched_student.role,
+            username=matched_student.username,
+            name=matched_student.name,
+            language=matched_student.language,
+            class_id=classroom.id
+        )
+    )
 
 
 @router.post("/refresh", response_model=Token)

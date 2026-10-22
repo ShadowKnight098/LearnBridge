@@ -54,7 +54,8 @@ export default function StaffLoginPage() {
       setLoading(true);
       setError(null);
       const res = await api.loginTeacherAdmin(usernameOrEmail.trim(), password.trim());
-      if (res.user.role === "admin") {
+      const role = res?.user?.role || roleTab;
+      if (role === "admin") {
         router.push("/admin/dashboard");
       } else {
         router.push("/teacher/dashboard");

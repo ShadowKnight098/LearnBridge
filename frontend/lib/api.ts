@@ -3,6 +3,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 export interface UserProfile {
   id: string;
   name: string;
+  username?: string;
   email?: string;
   role: "admin" | "teacher" | "student";
   preferred_language: string;
@@ -16,6 +17,25 @@ export interface AuthTokens {
   user: UserProfile;
 }
 
+// JWT Payload Decoder Helper
+export const parseJwt = (token: string): any => {
+  try {
+    const parts = token.split(".");
+    if (parts.length < 2) return null;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+};
+
 // Local storage token helper
 export const getStoredToken = (): string | null => {
   if (typeof window === "undefined") return null;
@@ -24,22 +44,63 @@ export const getStoredToken = (): string | null => {
 
 export const setStoredAuth = (data: AuthTokens) => {
   if (typeof window === "undefined") return;
-  localStorage.setItem("learnbridge_token", data.access_token);
+  if (data.access_token) {
+    localStorage.setItem("learnbridge_token", data.access_token);
+  }
   if (data.refresh_token) {
     localStorage.setItem("learnbridge_refresh_token", data.refresh_token);
   }
-  localStorage.setItem("learnbridge_user", JSON.stringify(data.user));
+
+  let user = data.user;
+  // If backend didn't bundle user directly, recover it immediately from JWT payload
+  if (!user && data.access_token) {
+    const payload = parseJwt(data.access_token);
+    if (payload && payload.role && payload.sub) {
+      user = {
+        id: payload.sub,
+        role: payload.role,
+        username: payload.username || "",
+        name: payload.username || (payload.role === "student" ? "Learner" : "Staff"),
+        preferred_language: "te",
+      };
+    }
+  }
+
+  if (user) {
+    localStorage.setItem("learnbridge_user", JSON.stringify(user));
+  }
 };
 
 export const getStoredUser = (): UserProfile | null => {
   if (typeof window === "undefined") return null;
   const userStr = localStorage.getItem("learnbridge_user");
-  if (!userStr) return null;
-  try {
-    return JSON.parse(userStr);
-  } catch {
-    return null;
+  if (userStr && userStr !== "undefined") {
+    try {
+      const parsed = JSON.parse(userStr);
+      if (parsed && parsed.role) return parsed;
+    } catch {
+      // ignore JSON parse error
+    }
   }
+
+  // Fallback: recover user from valid access token
+  const token = getStoredToken();
+  if (token) {
+    const payload = parseJwt(token);
+    if (payload && payload.role && payload.sub) {
+      const recovered: UserProfile = {
+        id: payload.sub,
+        role: payload.role,
+        username: payload.username || "",
+        name: payload.username || (payload.role === "student" ? "Learner" : "Staff"),
+        preferred_language: "te",
+      };
+      localStorage.setItem("learnbridge_user", JSON.stringify(recovered));
+      return recovered;
+    }
+  }
+
+  return null;
 };
 
 export const clearStoredAuth = () => {

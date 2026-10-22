@@ -2,10 +2,20 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 
+class UserBasic(BaseModel):
+    id: str
+    role: str
+    username: str
+    name: str
+    language: str
+    class_id: Optional[str] = None
+
+
 class Token(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+    user: Optional[UserBasic] = None
 
 
 class TokenData(BaseModel):
