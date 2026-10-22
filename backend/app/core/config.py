@@ -47,15 +47,29 @@ class Settings(BaseSettings):
     @property
     def sync_database_url(self) -> str:
         """Returns a synchronous database URL for scripts/alembic."""
+        import re
         url = self.DATABASE_URL
         if url.startswith("sqlite+aiosqlite:"):
             return url.replace("sqlite+aiosqlite:", "sqlite:")
         if url.startswith("postgresql+psycopg:"):
-            return url.replace("postgresql+psycopg:", "postgresql:")
+            url = url.replace("postgresql+psycopg:", "postgresql:")
         if url.startswith("postgresql+asyncpg:"):
-            return url.replace("postgresql+asyncpg:", "postgresql:")
-        if url.startswith("postgresql:"):
-            return url
+            url = url.replace("postgresql+asyncpg:", "postgresql:")
+
+        supabase_match = re.search(r"@db\.([a-z0-9]+)\.supabase\.co(?::5432)?", url)
+        if supabase_match:
+            project_ref = supabase_match.group(1)
+            url = re.sub(
+                r"://([^:]+):",
+                lambda m: f"://{m.group(1)}.{project_ref}:" if f".{project_ref}" not in m.group(1) else f"://{m.group(1)}:",
+                url,
+                count=1
+            )
+            url = re.sub(
+                r"@db\.[a-z0-9]+\.supabase\.co(?::5432)?",
+                "@aws-0-ap-south-1.pooler.supabase.com:5432",
+                url
+            )
         return url
 
 

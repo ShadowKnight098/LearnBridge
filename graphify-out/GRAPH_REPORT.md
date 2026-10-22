@@ -1,17 +1,17 @@
 # Graph Report - LearnBridge  (2026-10-22)
 
 ## Corpus Check
-- 82 files · ~49,608 words
+- 82 files · ~49,690 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 9 file(s) not represented in the graph (top: (none) 6, .example 1, .ini 1)
 
 ## Summary
-- 639 nodes · 1593 edges · 40 communities (34 shown, 6 thin omitted)
+- 639 nodes · 1594 edges · 40 communities (34 shown, 6 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 46 edges (avg confidence: 0.94)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `977e22ea`
+- Built from commit: `2b2c9a8f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 

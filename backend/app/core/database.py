@@ -23,6 +23,23 @@ if db_url.startswith("postgres://"):
 elif db_url.startswith("postgresql://"):
     db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
 
+# Auto-detect Supabase direct IPv6 domain and adapt to IPv4 pooler for Render/IPv4 hosts
+import re
+supabase_match = re.search(r"@db\.([a-z0-9]+)\.supabase\.co(?::5432)?", db_url)
+if supabase_match:
+    project_ref = supabase_match.group(1)
+    db_url = re.sub(
+        r"://([^:]+):",
+        lambda m: f"://{m.group(1)}.{project_ref}:" if f".{project_ref}" not in m.group(1) else f"://{m.group(1)}:",
+        db_url,
+        count=1
+    )
+    db_url = re.sub(
+        r"@db\.[a-z0-9]+\.supabase\.co(?::5432)?",
+        "@aws-0-ap-south-1.pooler.supabase.com:5432",
+        db_url
+    )
+
 if db_url.startswith("sqlite"):
     connect_args["check_same_thread"] = False
 

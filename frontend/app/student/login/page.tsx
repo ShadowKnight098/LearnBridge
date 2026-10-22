@@ -13,7 +13,7 @@ export default function StudentLoginPage() {
   const router = useRouter();
   const { t } = useTranslation();
 
-  const [classCode, setClassCode] = useState("CLS-001");
+  const [classCode, setClassCode] = useState("CLS3A");
   const [pin, setPin] = useState("1234");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -149,8 +149,21 @@ export default function StudentLoginPage() {
         </form>
       </div>
 
-      <div className="text-center text-xs text-slate-500">
-        Demo Tip: Use Class <span className="font-bold">CLS-001</span> and PIN <span className="font-bold">1234</span>
+      <div className="text-center text-xs text-slate-500 flex flex-col items-center gap-2">
+        <div>
+          Demo Tip: Use Class <span className="font-bold text-purple-700">CLS3A</span> and PIN <span className="font-bold text-purple-700">1234</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setClassCode("CLS3A");
+            setPin("1234");
+          }}
+          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-white text-purple-700 border border-purple-200 hover:bg-purple-50 transition-all shadow-xs"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+          <span>Autofill Demo Credentials</span>
+        </button>
       </div>
     </main>
   );
