@@ -6,9 +6,9 @@
     "semantic_hash": ""
   },
   "backend/app/api/auth.py": {
-    "mtime": 1792676458.745115,
-    "seen": 1792679498.8674731,
-    "ast_hash": "3a3b39d8f13e64546e54971bd0e06798",
+    "mtime": 1792685650.8502777,
+    "seen": 1792685860.1549213,
+    "ast_hash": "91f6539c40e76ee5aa99560473236752",
     "semantic_hash": ""
   },
   "backend/app/api/content.py": {
@@ -84,9 +84,9 @@
     "semantic_hash": ""
   },
   "backend/app/schemas/auth.py": {
-    "mtime": 1792676315.2578318,
-    "seen": 1792679498.8674934,
-    "ast_hash": "2f5c6c6fa92faa78e054dcc0dcae2165",
+    "mtime": 1792685064.372579,
+    "seen": 1792685860.158564,
+    "ast_hash": "b53716b6ba3d2240e608500eef3c4747",
     "semantic_hash": ""
   },
   "backend/app/schemas/content.py": {
@@ -228,15 +228,15 @@
     "semantic_hash": ""
   },
   "frontend/app/login/page.tsx": {
-    "mtime": 1792678741.7587304,
-    "seen": 1792679498.8675327,
-    "ast_hash": "cbdccc9bf8d4ba18128df1137ebf399a",
+    "mtime": 1792685783.1215475,
+    "seen": 1792685860.1672096,
+    "ast_hash": "e64a509a9e53148c0456a6da6e83ede5",
     "semantic_hash": ""
   },
   "frontend/app/page.tsx": {
-    "mtime": 1792678587.6635852,
-    "seen": 1792679498.8675344,
-    "ast_hash": "48b03c4640bd0e12e67decea42684a62",
+    "mtime": 1792685754.7595224,
+    "seen": 1792685860.167214,
+    "ast_hash": "f9097ebe5ba4f46c705975082c600667",
     "semantic_hash": ""
   },
   "frontend/app/student/badges/page.tsx": {
@@ -342,9 +342,9 @@
     "semantic_hash": ""
   },
   "frontend/lib/api.ts": {
-    "mtime": 1792678372.3378167,
-    "seen": 1792679498.8675761,
-    "ast_hash": "60cf1254caf4ebcf351e56cb8b4f18e4",
+    "mtime": 1792685673.23753,
+    "seen": 1792685860.1737957,
+    "ast_hash": "778062d517a22aea03a1520259e3cfa3",
     "semantic_hash": ""
   },
   "frontend/lib/i18n.tsx": {

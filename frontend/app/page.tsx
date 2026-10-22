@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Globe, GraduationCap, ShieldCheck, Sparkles, BookOpen } from "lucide-react";
+import { Globe, GraduationCap, ShieldCheck, Sparkles, BookOpen, ArrowRight } from "lucide-react";
 import { useTranslation, Language } from "../lib/i18n";
 import { Mascot } from "../components/Mascot";
 
@@ -55,28 +55,37 @@ export default function SplashPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-purple-100 via-indigo-50 to-white flex flex-col justify-between p-4 sm:p-8">
-      {/* Top Bar with Teacher/Admin direct access */}
-      <div className="max-w-5xl w-full mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-3xl">🦉</span>
-          <span className="text-2xl font-black text-purple-900 tracking-tight">
-            LearnBridge
-          </span>
+    <main className="min-h-screen bg-gradient-to-b from-purple-100 via-indigo-50/60 to-white flex flex-col justify-between p-4 sm:p-8">
+      {/* Top Bar with Brand and Educator Portal Access */}
+      <header className="max-w-5xl w-full mx-auto flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2.5">
+          <span className="text-3xl filter drop-shadow">🦉</span>
+          <div className="flex flex-col">
+            <span className="text-2xl font-black text-purple-950 tracking-tight leading-none">
+              LearnBridge
+            </span>
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-700/80 mt-0.5">
+              NEP 2020 • NIPUN Bharat
+            </span>
+          </div>
         </div>
+
         <div className="flex items-center gap-3">
           <Link
             href="/login"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-white text-slate-700 hover:text-indigo-600 hover:bg-slate-50 border border-slate-200 shadow-sm transition-all"
+            className="group inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold bg-white/90 hover:bg-white text-purple-950 border border-purple-200 shadow-sm hover:shadow-md hover:border-purple-300 transition-all"
           >
-            <GraduationCap className="w-4 h-4 text-indigo-600" />
-            <span>Teacher & Admin Login</span>
+            <div className="w-6 h-6 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
+              <GraduationCap className="w-3.5 h-3.5" />
+            </div>
+            <span>Staff & Educator Login</span>
+            <ArrowRight className="w-3.5 h-3.5 text-purple-400 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
-      </div>
+      </header>
 
       {/* Main Hero & Mascot Greeting */}
-      <div className="max-w-4xl w-full mx-auto text-center py-6">
+      <div className="max-w-4xl w-full mx-auto text-center py-6 sm:py-8">
         <div className="flex justify-center mb-4">
           <Mascot mood="greeting" speech="Welcome! Choose your language to start learning." size="lg" />
         </div>
@@ -84,7 +93,7 @@ export default function SplashPage() {
         <h1 className="text-3xl sm:text-5xl font-black text-purple-950 mb-3 tracking-tight">
           Learn Math, Reading & Words Every Day!
         </h1>
-        <p className="text-lg sm:text-xl text-purple-800 font-medium max-w-xl mx-auto">
+        <p className="text-base sm:text-xl text-purple-800/90 font-medium max-w-xl mx-auto">
           Interactive adaptive learning made fun and easy with Mitra the Owl.
         </p>
 
@@ -111,10 +120,41 @@ export default function SplashPage() {
             </button>
           ))}
         </div>
+
+        {/* Dedicated Educator & Admin Portal Banner */}
+        <div className="mt-10 sm:mt-12 max-w-3xl w-full mx-auto">
+          <div className="bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 rounded-3xl p-6 sm:p-7 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-5 border border-purple-800/40 text-left">
+            <div className="flex items-center gap-4">
+              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center flex-shrink-0 text-amber-300">
+                <GraduationCap className="w-7 h-7 sm:w-8 sm:h-8" />
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-xs font-bold mb-1">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Educator & Admin Portal</span>
+                </div>
+                <h3 className="text-base sm:text-lg font-extrabold tracking-tight text-white">
+                  Classroom Heatmaps, AI Question Generation & School Analytics
+                </h3>
+                <p className="text-xs sm:text-sm text-purple-200/80 mt-0.5">
+                  Designed for primary school teachers, headmasters, and coordinators.
+                </p>
+              </div>
+            </div>
+
+            <Link
+              href="/login"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-white hover:bg-purple-50 text-purple-950 font-black text-sm shadow-lg hover:shadow-xl transition-all whitespace-nowrap flex-shrink-0 group"
+            >
+              <span>Teacher / Admin Sign In</span>
+              <ArrowRight className="w-4 h-4 text-purple-700 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+        </div>
       </div>
 
       {/* Bottom Footer */}
-      <footer className="max-w-5xl w-full mx-auto text-center py-4 border-t border-purple-100 text-sm text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <footer className="max-w-5xl w-full mx-auto text-center py-4 border-t border-purple-200/60 text-xs sm:text-sm text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
         <p>© 2026 LearnBridge — Zero-cost, privacy-first foundational learning</p>
         <div className="flex items-center gap-4 font-semibold text-purple-700">
           <span>Accessible WCAG AA</span>

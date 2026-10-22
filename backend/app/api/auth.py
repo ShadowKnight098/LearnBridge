@@ -17,7 +17,18 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/login", response_model=Token)
 async def login(credentials: LoginRequest, db: AsyncSession = Depends(get_db)):
-    stmt = select(User).where(User.username == credentials.username)
+    identifier = (credentials.username or credentials.email or "").strip()
+    if not identifier:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username or email is required"
+        )
+
+    # Match exact username or username from email prefix (e.g. teacher1@... -> teacher1)
+    username_prefix = identifier.split("@")[0]
+    stmt = select(User).where(
+        (User.username == identifier) | (User.username == username_prefix)
+    )
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
 

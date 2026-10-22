@@ -75,10 +75,14 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
 
 export const api = {
   // Auth
-  async loginTeacherAdmin(email: string, password: string): Promise<AuthTokens> {
+  async loginTeacherAdmin(usernameOrEmail: string, password: string): Promise<AuthTokens> {
     const data = await apiFetch<AuthTokens>("/auth/login", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({
+        username: usernameOrEmail,
+        email: usernameOrEmail,
+        password: password,
+      }),
     });
     setStoredAuth(data);
     return data;
