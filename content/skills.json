@@ -1,0 +1,317 @@
+[
+  {
+    "id": "NUM-01",
+    "domain": "numeracy",
+    "name_en": "Number sense to 100",
+    "name_hi": "100 तक संख्या ज्ञान",
+    "name_te": "100 వరకు సంఖ్యా జ్ఞానం",
+    "grade_min": 3,
+    "grade_max": 3,
+    "prerequisites": [],
+    "levels": {
+      "1": "Count objects to 20",
+      "2": "Compare/order numbers to 100",
+      "3": "Place value (tens/ones)"
+    }
+  },
+  {
+    "id": "NUM-02",
+    "domain": "numeracy",
+    "name_en": "Addition",
+    "name_hi": "जोड़",
+    "name_te": "కూడిక",
+    "grade_min": 3,
+    "grade_max": 3,
+    "prerequisites": ["NUM-01"],
+    "levels": {
+      "1": "1-digit + 1-digit",
+      "2": "2-digit, no carry",
+      "3": "2-digit with carry"
+    }
+  },
+  {
+    "id": "NUM-03",
+    "domain": "numeracy",
+    "name_en": "Subtraction",
+    "name_hi": "घटाव",
+    "name_te": "తీసివేత",
+    "grade_min": 3,
+    "grade_max": 3,
+    "prerequisites": ["NUM-01"],
+    "levels": {
+      "1": "1-digit subtraction",
+      "2": "2-digit, no borrow",
+      "3": "2-digit with borrow"
+    }
+  },
+  {
+    "id": "NUM-04",
+    "domain": "numeracy",
+    "name_en": "Multiplication tables",
+    "name_hi": "पहाड़े (गुणा)",
+    "name_te": "గుణకార పట్టికలు",
+    "grade_min": 3,
+    "grade_max": 4,
+    "prerequisites": ["NUM-02"],
+    "levels": {
+      "1": "Tables 2, 5, 10",
+      "2": "Tables 3, 4, 6",
+      "3": "Tables 7, 8, 9"
+    }
+  },
+  {
+    "id": "NUM-05",
+    "domain": "numeracy",
+    "name_en": "Division basics",
+    "name_hi": "भाग (विभाजन)",
+    "name_te": "భాగహారం ప్రాథమికాలు",
+    "grade_min": 4,
+    "grade_max": 4,
+    "prerequisites": ["NUM-04"],
+    "levels": {
+      "1": "Equal sharing",
+      "2": "Division facts",
+      "3": "Division with remainder"
+    }
+  },
+  {
+    "id": "NUM-06",
+    "domain": "numeracy",
+    "name_en": "Fractions",
+    "name_hi": "भिन्न",
+    "name_te": "భిన్నాలు",
+    "grade_min": 4,
+    "grade_max": 5,
+    "prerequisites": ["NUM-05"],
+    "levels": {
+      "1": "Identify 1/2, 1/4",
+      "2": "Compare simple fractions",
+      "3": "Add like-denominator fractions"
+    }
+  },
+  {
+    "id": "NUM-07",
+    "domain": "numeracy",
+    "name_en": "Measurement",
+    "name_hi": "मापन (लंबाई, भार, समय)",
+    "name_te": "కొలతలు (పొడవు, బరువు, సమయం)",
+    "grade_min": 3,
+    "grade_max": 4,
+    "prerequisites": ["NUM-01"],
+    "levels": {
+      "1": "Read a clock (hour)",
+      "2": "Units conversion (cm/m)",
+      "3": "Time duration problems"
+    }
+  },
+  {
+    "id": "NUM-08",
+    "domain": "numeracy",
+    "name_en": "Money",
+    "name_hi": "मुद्रा (रुपये-पैसे)",
+    "name_te": "డబ్బు (రూపాయలు)",
+    "grade_min": 3,
+    "grade_max": 4,
+    "prerequisites": ["NUM-02"],
+    "levels": {
+      "1": "Identify coins/notes",
+      "2": "Make a total",
+      "3": "Change calculation"
+    }
+  },
+  {
+    "id": "NUM-09",
+    "domain": "numeracy",
+    "name_en": "Word problems",
+    "name_hi": "इबारती सवाल",
+    "name_te": "గణిత సమస్యలు",
+    "grade_min": 3,
+    "grade_max": 5,
+    "prerequisites": ["NUM-02", "NUM-03"],
+    "levels": {
+      "1": "1-step problems",
+      "2": "2-step problems",
+      "3": "Multi-step with mixed ops"
+    }
+  },
+  {
+    "id": "NUM-10",
+    "domain": "numeracy",
+    "name_en": "Shapes and patterns",
+    "name_hi": "आकार और पैटर्न",
+    "name_te": "ఆకారాలు మరియు నమూనాలు",
+    "grade_min": 3,
+    "grade_max": 4,
+    "prerequisites": [],
+    "levels": {
+      "1": "Name shapes",
+      "2": "Complete patterns",
+      "3": "Symmetry and perimeter"
+    }
+  },
+  {
+    "id": "LIT-01",
+    "domain": "literacy",
+    "name_en": "Letter/akshara recognition",
+    "name_hi": "अक्षर पहचान",
+    "name_te": "అక్షర గుర్తింపు",
+    "grade_min": 3,
+    "grade_max": 3,
+    "prerequisites": [],
+    "levels": {
+      "1": "Identify vowels",
+      "2": "Identify consonants",
+      "3": "Letter-sound mapping"
+    }
+  },
+  {
+    "id": "LIT-02",
+    "domain": "literacy",
+    "name_en": "Vowel signs (matras / guninthalu)",
+    "name_hi": "मात्राएं",
+    "name_te": "గుణింతాలు",
+    "grade_min": 3,
+    "grade_max": 3,
+    "prerequisites": ["LIT-01"],
+    "levels": {
+      "1": "Single sign",
+      "2": "Words with signs",
+      "3": "Confusable signs"
+    }
+  },
+  {
+    "id": "LIT-03",
+    "domain": "literacy",
+    "name_en": "Word reading and vocabulary",
+    "name_hi": "शब्द पठन और शब्दावली",
+    "name_te": "పద పఠనం మరియు పదకోశం",
+    "grade_min": 3,
+    "grade_max": 4,
+    "prerequisites": ["LIT-02"],
+    "levels": {
+      "1": "Picture-word match",
+      "2": "Synonyms/antonyms",
+      "3": "Words in context"
+    }
+  },
+  {
+    "id": "LIT-04",
+    "domain": "literacy",
+    "name_en": "Sentence construction",
+    "name_hi": "वाक्य रचना",
+    "name_te": "వాక్య నిర్మాణం",
+    "grade_min": 3,
+    "grade_max": 4,
+    "prerequisites": ["LIT-03"],
+    "levels": {
+      "1": "Arrange 3 words",
+      "2": "Complete a sentence",
+      "3": "Correct a sentence"
+    }
+  },
+  {
+    "id": "LIT-05",
+    "domain": "literacy",
+    "name_en": "Reading comprehension (literal)",
+    "name_hi": "गद्यांश समझ (प्रत्यक्ष)",
+    "name_te": "గ్రహణ శక్తి (ప్రత్యక్ష ప్రశ్నలు)",
+    "grade_min": 3,
+    "grade_max": 5,
+    "prerequisites": ["LIT-03"],
+    "levels": {
+      "1": "2-line passage, factual Q",
+      "2": "5-line passage",
+      "3": "Short story, sequencing"
+    }
+  },
+  {
+    "id": "LIT-06",
+    "domain": "literacy",
+    "name_en": "Reading comprehension (inferential)",
+    "name_hi": "गद्यांश समझ (अनुमानात्मक)",
+    "name_te": "గ్రహణ శక్తి (భావోద్దేశ ప్రశ్నలు)",
+    "grade_min": 4,
+    "grade_max": 5,
+    "prerequisites": ["LIT-05"],
+    "levels": {
+      "1": "Simple why questions",
+      "2": "Cause and effect",
+      "3": "Main idea and moral"
+    }
+  },
+  {
+    "id": "LIT-07",
+    "domain": "literacy",
+    "name_en": "Grammar basics",
+    "name_hi": "व्याकरण मूल बातें",
+    "name_te": "వ్యాకరణ ప్రాథమికాలు",
+    "grade_min": 4,
+    "grade_max": 5,
+    "prerequisites": ["LIT-04"],
+    "levels": {
+      "1": "Nouns and verbs",
+      "2": "Tense, singular/plural",
+      "3": "Mixed usage"
+    }
+  },
+  {
+    "id": "LIT-08",
+    "domain": "literacy",
+    "name_en": "Fluency",
+    "name_hi": "धाराप्रवाह पठन",
+    "name_te": "ధారాళంగా చదవడం",
+    "grade_min": 3,
+    "grade_max": 5,
+    "prerequisites": ["LIT-03"],
+    "levels": {
+      "1": "Word list",
+      "2": "Sentence reading",
+      "3": "Passage reading"
+    }
+  },
+  {
+    "id": "LANG-01",
+    "domain": "language",
+    "name_en": "Home-language comfort",
+    "name_hi": "मातृभाषा सहजता",
+    "name_te": "మాతృభాష సౌలభ్యం",
+    "grade_min": 3,
+    "grade_max": 5,
+    "prerequisites": [],
+    "levels": {
+      "1": "Basic familiarity",
+      "2": "Conversational comfort",
+      "3": "Proficient expression"
+    }
+  },
+  {
+    "id": "LANG-02",
+    "domain": "language",
+    "name_en": "Second-language bridging",
+    "name_hi": "द्वितीय भाषा सेतु",
+    "name_te": "ద్వితీయ భాష వారధి",
+    "grade_min": 3,
+    "grade_max": 5,
+    "prerequisites": [],
+    "levels": {
+      "1": "Vocabulary association",
+      "2": "Bilingual concept mapping",
+      "3": "Cross-language comprehension"
+    }
+  },
+  {
+    "id": "LANG-03",
+    "domain": "language",
+    "name_en": "Instruction-language comprehension",
+    "name_hi": "निर्देश भाषा बोध",
+    "name_te": "బోధనా భాష అవగాహన",
+    "grade_min": 3,
+    "grade_max": 5,
+    "prerequisites": [],
+    "levels": {
+      "1": "Basic classroom instructions",
+      "2": "Task and question comprehension",
+      "3": "Complex multi-step instructions"
+    }
+  }
+]

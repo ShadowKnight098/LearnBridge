@@ -1,0 +1,46 @@
+# Zero-cost local stack: docker compose up --build
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: learnbridge
+      POSTGRES_PASSWORD: learnbridge
+      POSTGRES_DB: learnbridge
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U learnbridge"]
+      interval: 5s
+      retries: 10
+
+  backend:
+    build: ./backend            # FastAPI app (to be created)
+    env_file: .env
+    depends_on:
+      db: { condition: service_healthy }
+    ports: ["8000:8000"]
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes: ["./backend:/app"]
+
+  frontend:
+    build: ./frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    depends_on: [backend]
+    ports: ["3000:3000"]
+    command: npm run dev
+    volumes: ["./frontend:/app", "/app/node_modules"]
+
+  # Optional local LLM (free, private; weaker for Telugu/Hindi). Enable with:
+  #   docker compose --profile local-llm up
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["local-llm"]
+    ports: ["11434:11434"]
+    volumes: ["ollama:/root/.ollama"]
+
+volumes:
+  pgdata:
+  ollama:

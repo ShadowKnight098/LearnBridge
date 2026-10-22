@@ -1,0 +1,14 @@
+.env
+.env.*
+*.env
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+learnbridge.db
+*.db
+*.sqlite
+*.sqlite3
+*.log

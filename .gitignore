@@ -1,0 +1,57 @@
+# Environment and secrets (CRITICAL: Never commit .env files)
+.env
+.env.*
+*.env
+!.env.example
+
+# Local databases and SQLite
+learnbridge.db
+*.db
+*.sqlite
+*.sqlite3
+
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+.Python
+backend/.venv/
+.venv/
+env/
+venv/
+ENV/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node.js & Next.js
+node_modules/
+frontend/node_modules/
+frontend/.next/
+.next/
+out/
+build/
+dist/
+.npm
+*.tsbuildinfo
+next-env.d.ts
+
+# Logs and Task Outputs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS and Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Antigravity & AI scratch
+.agents/
+.claude/
+scratch/
