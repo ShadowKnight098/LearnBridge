@@ -55,3 +55,4 @@ Thumbs.db
 .agents/
 .claude/
 scratch/
+graphify-out/cache/

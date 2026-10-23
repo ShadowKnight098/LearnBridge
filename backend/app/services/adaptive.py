@@ -104,7 +104,13 @@ def select_next_question(
             if q.get("language") == language and q.get("status", "approved") == "approved"
         ]
         if not pool:
-            return None, "empty_pool"
+            # Multi-language fallback if no questions found in this specific language
+            pool = [
+                q for q in candidate_questions
+                if q.get("status", "approved") == "approved"
+            ]
+            if not pool:
+                return None, "empty_pool"
 
     recent_set = set(recently_seen_ids)
 

@@ -28,6 +28,179 @@ router = APIRouter(prefix="/practice", tags=["Practice"])
 DEFAULT_SESSION_LENGTH = 10
 DIAGNOSTIC_SESSION_LENGTH = 8
 
+STARTER_SKILLS = [
+    {"id": "NUM-01", "domain": "numeracy", "name_en": "Counting 1-20", "name_te": "లెక్కింపు 1-20", "name_hi": "गिनती 1-20", "grade_min": 1, "grade_max": 3},
+    {"id": "NUM-02", "domain": "numeracy", "name_en": "Single-Digit Addition", "name_te": "ఏక అంకెల కూడిక", "name_hi": "एक अंकीय जोड़", "grade_min": 1, "grade_max": 3},
+    {"id": "NUM-03", "domain": "numeracy", "name_en": "Single-Digit Subtraction", "name_te": "ఏక అంకెల తీసివేత", "name_hi": "एक अंकीय घटाव", "grade_min": 1, "grade_max": 3},
+    {"id": "LIT-01", "domain": "literacy", "name_en": "Letter Recognition", "name_te": "అక్షర గుర్తింపు", "name_hi": "वर्ण पहचान", "grade_min": 1, "grade_max": 3},
+    {"id": "LIT-03", "domain": "literacy", "name_en": "CVC Word Blending", "name_te": "పదాల నిర్మాణం", "name_hi": "शब्द मिश्रण", "grade_min": 1, "grade_max": 3},
+    {"id": "LANG-01", "domain": "language", "name_en": "Everyday Objects", "name_te": "రోజువారీ వస్తువులు", "name_hi": "दैनिक वस्तुएँ", "grade_min": 1, "grade_max": 3},
+]
+
+STARTER_QUESTIONS = [
+    {
+        "concept_id": "num01_count_stars",
+        "skill_id": "NUM-01",
+        "language": "en",
+        "grade": 3,
+        "difficulty": 1,
+        "type": "mcq",
+        "text": "How many stars are here: ⭐ ⭐ ⭐ ⭐ ⭐ ?",
+        "options": ["3", "4", "5", "6"],
+        "correct_index": 2,
+        "explanation": "Counting the stars one by one gives 5 stars.",
+        "status": "approved"
+    },
+    {
+        "concept_id": "num01_count_stars_te",
+        "skill_id": "NUM-01",
+        "language": "te",
+        "grade": 3,
+        "difficulty": 1,
+        "type": "mcq",
+        "text": "ఇక్కడ ఎన్ని నక్షత్రాలు ఉన్నాయి: ⭐ ⭐ ⭐ ⭐ ⭐ ?",
+        "options": ["3", "4", "5", "6"],
+        "correct_index": 2,
+        "explanation": "ఒక్కొక్కటిగా లెక్కిస్తే మొత్తం 5 నక్షత్రాలు ఉన్నాయి.",
+        "status": "approved"
+    },
+    {
+        "concept_id": "num01_count_stars_hi",
+        "skill_id": "NUM-01",
+        "language": "hi",
+        "grade": 3,
+        "difficulty": 1,
+        "type": "mcq",
+        "text": "यहाँ कितने तारे हैं: ⭐ ⭐ ⭐ ⭐ ⭐ ?",
+        "options": ["3", "4", "5", "6"],
+        "correct_index": 2,
+        "explanation": "एक-एक करके गिनने पर कुल 5 तारे हैं।",
+        "status": "approved"
+    },
+    {
+        "concept_id": "num01_compare_numbers",
+        "skill_id": "NUM-01",
+        "language": "en",
+        "grade": 3,
+        "difficulty": 2,
+        "type": "mcq",
+        "text": "Which number is greater: 47 or 74?",
+        "options": ["47", "74", "Both are equal", "Cannot be determined"],
+        "correct_index": 1,
+        "explanation": "74 has 7 tens, while 47 has only 4 tens. Therefore, 74 is greater.",
+        "status": "approved"
+    },
+    {
+        "concept_id": "num01_place_value",
+        "skill_id": "NUM-01",
+        "language": "en",
+        "grade": 3,
+        "difficulty": 3,
+        "type": "mcq",
+        "text": "In the number 85, what is the place value of 8?",
+        "options": ["8", "80", "50", "85"],
+        "correct_index": 1,
+        "explanation": "8 is in the tens place, so its value is 8 x 10 = 80.",
+        "status": "approved"
+    },
+    {
+        "concept_id": "num02_add_single",
+        "skill_id": "NUM-02",
+        "language": "en",
+        "grade": 3,
+        "difficulty": 1,
+        "type": "mcq",
+        "text": "What is 4 + 3?",
+        "options": ["6", "7", "8", "9"],
+        "correct_index": 1,
+        "explanation": "4 plus 3 equals 7.",
+        "status": "approved"
+    },
+    {
+        "concept_id": "num02_add_single_te",
+        "skill_id": "NUM-02",
+        "language": "te",
+        "grade": 3,
+        "difficulty": 1,
+        "type": "mcq",
+        "text": "4 + 3 ఎంత?",
+        "options": ["6", "7", "8", "9"],
+        "correct_index": 1,
+        "explanation": "4 కు 3 కలిపితే 7 వస్తుంది.",
+        "status": "approved"
+    },
+    {
+        "concept_id": "num02_add_single_hi",
+        "skill_id": "NUM-02",
+        "language": "hi",
+        "grade": 3,
+        "difficulty": 1,
+        "type": "mcq",
+        "text": "4 + 3 कितना होता है?",
+        "options": ["6", "7", "8", "9"],
+        "correct_index": 1,
+        "explanation": "4 में 3 जोड़ने पर 7 प्राप्त होता है।",
+        "status": "approved"
+    },
+    {
+        "concept_id": "lit01_vowel",
+        "skill_id": "LIT-01",
+        "language": "en",
+        "grade": 3,
+        "difficulty": 1,
+        "type": "mcq",
+        "text": "Which of these letters is a vowel?",
+        "options": ["B", "E", "T", "M"],
+        "correct_index": 1,
+        "explanation": "E is a vowel (A, E, I, O, U are vowels).",
+        "status": "approved"
+    },
+    {
+        "concept_id": "lit03_antonym",
+        "skill_id": "LIT-03",
+        "language": "en",
+        "grade": 3,
+        "difficulty": 2,
+        "type": "mcq",
+        "text": "What is the opposite of the word 'Big'?",
+        "options": ["Tall", "Small", "Heavy", "Wide"],
+        "correct_index": 1,
+        "explanation": "The opposite of 'Big' is 'Small'.",
+        "status": "approved"
+    }
+]
+
+
+_starter_content_checked = False
+
+
+async def ensure_starter_content(db: AsyncSession):
+    """Ensures at least starter skills and approved questions exist in the database."""
+    global _starter_content_checked
+    if _starter_content_checked:
+        return
+
+    try:
+        q_count = (await db.execute(select(func.count(Question.id)))).scalar() or 0
+        if q_count > 0:
+            _starter_content_checked = True
+            return
+
+        # Ensure skills exist
+        for s_data in STARTER_SKILLS:
+            existing = (await db.execute(select(Skill).where(Skill.id == s_data["id"]))).scalar_one_or_none()
+            if not existing:
+                db.add(Skill(**s_data))
+        await db.flush()
+
+        # Add starter questions
+        for q_data in STARTER_QUESTIONS:
+            db.add(Question(**q_data))
+        await db.commit()
+        _starter_content_checked = True
+    except Exception:
+        await db.rollback()
+
 
 @router.post("/sessions", response_model=SessionStartResponse)
 async def start_practice_session(
@@ -35,6 +208,8 @@ async def start_practice_session(
     current_student: User = Depends(require_student),
     db: AsyncSession = Depends(get_db)
 ):
+    await ensure_starter_content(db)
+    is_diag = payload.final_is_diagnostic
     today = date.today()
     start_of_day = datetime.combine(today, datetime.min.time(), tzinfo=timezone.utc)
 
@@ -49,10 +224,12 @@ async def start_practice_session(
     if sessions_today >= settings.DAILY_SESSION_CAP:
         return SessionStartResponse(
             session_id="",
-            is_diagnostic=payload.is_diagnostic,
+            is_diagnostic=is_diag,
             language=payload.language or current_student.language,
             current_question_number=0,
             total_questions=0,
+            first_question=None,
+            question=None,
             daily_cap_reached=True,
             message="Great work today! You have reached your daily practice limit. Time to rest and come back tomorrow!"
         )
@@ -61,33 +238,36 @@ async def start_practice_session(
     lang = payload.language or current_student.language
     session = Session(
         student_id=current_student.id,
-        is_diagnostic=payload.is_diagnostic
+        is_diagnostic=is_diag
     )
     db.add(session)
     await db.flush()
 
-    # 3. Retrieve student's current mastery
-    mastery_stmt = select(Mastery).where(Mastery.student_id == current_student.id)
-    mastery_rows = (await db.execute(mastery_stmt)).scalars().all()
-    mastery_map = {m.skill_id: m.score for m in mastery_rows}
-
-    # 4. Candidate skills in content pool
-    skills_stmt = select(Question.skill_id).where(
-        Question.language == lang,
-        Question.status == "approved"
-    ).distinct()
-    available_skills = (await db.execute(skills_stmt)).scalars().all()
-
-    # Select target skill
-    target_skill = select_target_skill(mastery_map, available_skills) or "NUM-01"
-    target_diff = band_difficulty(mastery_map.get(target_skill, 0.3))
-
-    # 5. Candidate approved questions
+    # 3. Candidate approved questions
     q_stmt = select(Question).where(
         Question.language == lang,
         Question.status == "approved"
     )
     all_questions = (await db.execute(q_stmt)).scalars().all()
+    if not all_questions:
+        q_stmt = select(Question).where(Question.status == "approved")
+        all_questions = (await db.execute(q_stmt)).scalars().all()
+
+    # Candidate skills in content pool
+    available_skills = list({q.skill_id for q in all_questions})
+
+    # 4. Retrieve student's current mastery
+    mastery_stmt = select(Mastery).where(Mastery.student_id == current_student.id)
+    mastery_rows = (await db.execute(mastery_stmt)).scalars().all()
+    mastery_map = {m.skill_id: m.score for m in mastery_rows}
+
+    # Select target skill (honor payload.skill_id if requested)
+    if payload.skill_id:
+        target_skill = payload.skill_id
+    else:
+        target_skill = select_target_skill(mastery_map, available_skills) or "NUM-01"
+    target_diff = band_difficulty(mastery_map.get(target_skill, 0.3))
+
     pool = [
         {
             "id": q.id,
@@ -120,7 +300,7 @@ async def start_practice_session(
 
     await db.commit()
 
-    total_q = DIAGNOSTIC_SESSION_LENGTH if payload.is_diagnostic else DEFAULT_SESSION_LENGTH
+    total_q = DIAGNOSTIC_SESSION_LENGTH if is_diag else DEFAULT_SESSION_LENGTH
 
     first_q_resp = None
     if first_q:
@@ -141,6 +321,7 @@ async def start_practice_session(
         current_question_number=1,
         total_questions=total_q,
         first_question=first_q_resp,
+        question=first_q_resp,
         daily_cap_reached=False
     )
 
@@ -169,14 +350,16 @@ async def submit_answer(
     if not question:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
 
-    is_correct = (payload.chosen_index == question.correct_index)
+    chosen_idx = payload.final_chosen_index
+    time_taken = payload.final_time_taken_ms
+    is_correct = (chosen_idx == question.correct_index)
     lang = payload.language or question.language
 
     # 3. Calculate XP & Anti-gaming check
     xp_gained, flagged = calculate_attempt_xp(
         is_correct=is_correct,
         is_retry=False,
-        time_taken_ms=payload.time_taken_ms
+        time_taken_ms=time_taken
     )
 
     # 4. Record Attempt
@@ -184,9 +367,9 @@ async def submit_answer(
         session_id=session.id,
         student_id=current_student.id,
         question_id=question.id,
-        chosen_index=payload.chosen_index,
+        chosen_index=chosen_idx,
         is_correct=is_correct,
-        time_taken_ms=payload.time_taken_ms,
+        time_taken_ms=time_taken,
         flagged=flagged,
         language=lang
     )
@@ -386,8 +569,10 @@ async def submit_answer(
     return AnswerResponse(
         is_correct=is_correct,
         correct_index=question.correct_index,
+        correct_answer_index=question.correct_index,
         explanation=question.explanation,
         xp_gained=xp_gained,
+        xp_earned=xp_gained,
         flagged=flagged,
         current_question_number=attempts_done + (0 if is_completed else 1),
         total_questions=total_allowed,
@@ -395,3 +580,42 @@ async def submit_answer(
         is_completed=is_completed,
         summary=summary
     )
+
+
+@router.post("/sessions/{session_id}/complete")
+async def complete_practice_session(
+    session_id: str,
+    current_student: User = Depends(require_student),
+    db: AsyncSession = Depends(get_db)
+):
+    session_stmt = select(Session).where(
+        Session.id == session_id,
+        Session.student_id == current_student.id
+    )
+    session = (await db.execute(session_stmt)).scalar_one_or_none()
+    if not session:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+
+    if session.ended_at is None:
+        session.ended_at = datetime.now(timezone.utc)
+
+    # Attempts summary
+    attempts_stmt = select(Attempt).where(Attempt.session_id == session.id)
+    attempts = (await db.execute(attempts_stmt)).scalars().all()
+    correct_count = sum(1 for a in attempts if a.is_correct)
+
+    prof_stmt = select(StudentProfile).where(StudentProfile.student_id == current_student.id)
+    profile = (await db.execute(prof_stmt)).scalar_one_or_none()
+    streak = profile.current_streak if profile else 1
+
+    await db.commit()
+
+    return {
+        "session_id": session.id,
+        "total_xp_earned": max(20, correct_count * 10 + XP_SESSION_COMPLETION),
+        "streak_count": streak,
+        "new_badges": [],
+        "unlocked_chest": True,
+        "bonus_coins": 25,
+        "daily_cap_reached": False
+    }

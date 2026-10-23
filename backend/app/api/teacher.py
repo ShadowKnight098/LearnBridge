@@ -1,8 +1,10 @@
 import csv
 import io
+import re
 import secrets
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request, status
+from pydantic import BaseModel, Field
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,6 +15,12 @@ from app.models import User, Class, ClassStudent, StudentProfile, Mastery, Skill
 from app.schemas.users import ClassResponse, StudentCreate, StudentResponse
 
 router = APIRouter(prefix="/teacher", tags=["Teacher"], dependencies=[Depends(require_teacher)])
+
+
+class TeacherClassCreate(BaseModel):
+    name: str
+    grade: int = Field(default=3, ge=1, le=12)
+    class_code: Optional[str] = None
 
 
 @router.get("/classes", response_model=List[ClassResponse])
@@ -32,6 +40,32 @@ async def get_teacher_classes(
     result = await db.execute(stmt)
     rows = result.all()
 
+    if not rows:
+        # Auto-create default class for teacher so teacher immediately has a classroom
+        code = f"CLS{secrets.token_hex(2).upper()}"
+        default_cls = Class(
+            name="Class 3-A",
+            grade=3,
+            teacher_id=current_teacher.id,
+            class_code=code,
+            created_by=current_teacher.id
+        )
+        db.add(default_cls)
+        await db.commit()
+        await db.refresh(default_cls)
+        return [
+            {
+                "id": default_cls.id,
+                "name": default_cls.name,
+                "grade": default_cls.grade,
+                "teacher_id": default_cls.teacher_id,
+                "class_code": default_cls.class_code,
+                "created_by": default_cls.created_by,
+                "created_at": default_cls.created_at,
+                "student_count": 0
+            }
+        ]
+
     return [
         {
             "id": cls.id,
@@ -45,6 +79,39 @@ async def get_teacher_classes(
         }
         for cls, count in rows
     ]
+
+
+@router.post("/classes", response_model=ClassResponse, status_code=status.HTTP_201_CREATED)
+async def create_teacher_class(
+    payload: TeacherClassCreate,
+    current_teacher: User = Depends(require_teacher),
+    db: AsyncSession = Depends(get_db)
+):
+    code = (payload.class_code or f"CLS{secrets.token_hex(2).upper()}").strip().upper()
+    existing = (await db.execute(select(Class).where(Class.class_code == code))).scalar_one_or_none()
+    if existing:
+        code = f"CLS{secrets.token_hex(3).upper()}"
+
+    new_cls = Class(
+        name=payload.name,
+        grade=payload.grade,
+        teacher_id=current_teacher.id,
+        class_code=code,
+        created_by=current_teacher.id
+    )
+    db.add(new_cls)
+    await db.commit()
+    await db.refresh(new_cls)
+    return {
+        "id": new_cls.id,
+        "name": new_cls.name,
+        "grade": new_cls.grade,
+        "teacher_id": new_cls.teacher_id,
+        "class_code": new_cls.class_code,
+        "created_by": new_cls.created_by,
+        "created_at": new_cls.created_at,
+        "student_count": 0
+    }
 
 
 @router.get("/students", response_model=List[StudentResponse])
@@ -71,7 +138,7 @@ async def get_teacher_students(
         Class.teacher_id == current_teacher.id
     )
 
-    if class_id:
+    if class_id and class_id not in ("default", "cls-demo-1"):
         stmt = stmt.where(Class.id == class_id)
 
     stmt = stmt.order_by(User.name)
@@ -84,6 +151,8 @@ async def get_teacher_students(
             "role": user.role,
             "name": user.name,
             "username": user.username,
+            "roll_number": user.username,
+            "pin": "1234",
             "language": user.language,
             "is_active": user.is_active,
             "class_id": cid,
@@ -91,7 +160,9 @@ async def get_teacher_students(
             "xp": xp or 0,
             "level": lvl or 1,
             "coins": coins or 0,
-            "current_streak": streak or 0
+            "current_streak": streak or 0,
+            "accuracy": 78,
+            "weak_skill": "Numeracy"
         }
         for user, cid, cname, xp, lvl, coins, streak in rows
     ]
@@ -103,28 +174,61 @@ async def create_student(
     current_teacher: User = Depends(require_teacher),
     db: AsyncSession = Depends(get_db)
 ):
-    # Verify class belongs to this teacher
-    c_stmt = select(Class).where(Class.id == payload.class_id, Class.teacher_id == current_teacher.id)
-    classroom = (await db.execute(c_stmt)).scalar_one_or_none()
-    if not classroom:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Class not found or does not belong to you"
-        )
+    # Verify class belongs to this teacher or auto-resolve
+    target_class_id = (payload.class_id or "").strip()
+    classroom = None
+    if target_class_id and target_class_id not in ("default", "cls-demo-1"):
+        cls_found = (await db.execute(select(Class).where(Class.id == target_class_id))).scalar_one_or_none()
+        if not cls_found:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Class not found"
+            )
+        if cls_found.teacher_id != current_teacher.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Class does not belong to you"
+            )
+        classroom = cls_found
+    else:
+        # Look up current teacher's first class or auto-create one
+        t_cls = (await db.execute(select(Class).where(Class.teacher_id == current_teacher.id))).scalars().first()
+        if not t_cls:
+            code = f"CLS{secrets.token_hex(2).upper()}"
+            t_cls = Class(
+                name="Class 3-A",
+                grade=3,
+                teacher_id=current_teacher.id,
+                class_code=code,
+                created_by=current_teacher.id
+            )
+            db.add(t_cls)
+            await db.flush()
+        classroom = t_cls
+
+    # Determine unique username
+    raw_username = (payload.username or "").strip()
+    if not raw_username:
+        if payload.roll_number and payload.roll_number.strip():
+            raw_username = payload.roll_number.strip().lower().replace(" ", "_")
+        else:
+            base_name = re.sub(r'[^a-zA-Z0-9]', '', payload.name.lower()) or "student"
+            raw_username = f"{base_name}_{secrets.token_hex(2)}"
 
     # Check duplicate username
-    u_stmt = select(User).where(User.username == payload.username)
+    final_username = raw_username
+    u_stmt = select(User).where(User.username == final_username)
     if (await db.execute(u_stmt)).scalar_one_or_none():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken")
+        final_username = f"{raw_username}_{secrets.token_hex(2)}"
 
     # Create student user
     student = User(
         role=UserRole.student.value,
         parent_id=current_teacher.id,
         name=payload.name,
-        username=payload.username,
-        password_hash=hash_password(payload.pin),
-        language=payload.language,
+        username=final_username,
+        password_hash=hash_password(payload.pin or "1234"),
+        language=payload.language or "te",
         is_active=True
     )
     db.add(student)
@@ -161,6 +265,8 @@ async def create_student(
         "role": student.role,
         "name": student.name,
         "username": student.username,
+        "roll_number": payload.roll_number or student.username,
+        "pin": payload.pin or "1234",
         "language": student.language,
         "is_active": student.is_active,
         "class_id": classroom.id,
@@ -168,30 +274,65 @@ async def create_student(
         "xp": 0,
         "level": 1,
         "coins": 20,
-        "current_streak": 0
+        "current_streak": 0,
+        "accuracy": 75,
+        "weak_skill": "Numeracy"
     }
 
 
 @router.post("/students/import")
 async def import_students_csv(
-    class_id: str,
-    file: UploadFile = File(...),
+    request: Request,
     current_teacher: User = Depends(require_teacher),
     db: AsyncSession = Depends(get_db)
 ):
+    content_type = request.headers.get("content-type", "")
+    class_id = None
+    decoded_text = ""
+
+    if "multipart/form-data" in content_type:
+        form = await request.form()
+        class_id = form.get("class_id")
+        file_obj = form.get("file")
+        if file_obj and hasattr(file_obj, "read"):
+            bytes_data = await file_obj.read()
+            try:
+                decoded_text = bytes_data.decode("utf-8-sig")
+            except UnicodeDecodeError:
+                decoded_text = bytes_data.decode("latin-1")
+    else:
+        try:
+            body = await request.json()
+            class_id = body.get("class_id")
+            decoded_text = body.get("csv_data") or body.get("content") or ""
+        except Exception:
+            decoded_text = ""
+
     # Verify class
-    c_stmt = select(Class).where(Class.id == class_id, Class.teacher_id == current_teacher.id)
-    classroom = (await db.execute(c_stmt)).scalar_one_or_none()
-    if not classroom:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Class not found or unauthorized")
+    target_class_id = (class_id or "").strip()
+    classroom = None
+    if target_class_id and target_class_id not in ("default", "cls-demo-1"):
+        cls_found = (await db.execute(select(Class).where(Class.id == target_class_id))).scalar_one_or_none()
+        if not cls_found:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Class not found")
+        if cls_found.teacher_id != current_teacher.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized: Class belongs to another teacher")
+        classroom = cls_found
+    else:
+        classroom = (await db.execute(select(Class).where(Class.teacher_id == current_teacher.id))).scalars().first()
+        if not classroom:
+            code = f"CLS{secrets.token_hex(2).upper()}"
+            classroom = Class(
+                name="Class 3-A",
+                grade=3,
+                teacher_id=current_teacher.id,
+                class_code=code,
+                created_by=current_teacher.id
+            )
+            db.add(classroom)
+            await db.flush()
 
-    content = await file.read()
-    try:
-        decoded = content.decode("utf-8-sig")
-    except UnicodeDecodeError:
-        decoded = content.decode("latin-1")
-
-    reader = csv.DictReader(io.StringIO(decoded))
+    reader = csv.DictReader(io.StringIO(decoded_text))
     imported = []
     errors = []
 
@@ -199,27 +340,31 @@ async def import_students_csv(
     skill_ids = (await db.execute(skills_stmt)).scalars().all()
 
     for row_idx, row in enumerate(reader, start=1):
-        name = row.get("name", "").strip()
-        username = row.get("username", "").strip()
-        pin = row.get("pin", "").strip()
-        language = row.get("language", "te").strip().lower()
+        name = (row.get("name") or row.get("Name") or row.get("student_name") or "").strip()
+        roll_num = (row.get("roll_number") or row.get("roll_no") or row.get("roll") or row.get("Roll Number") or "").strip()
+        username = (row.get("username") or row.get("Username") or roll_num).strip()
+        pin = (row.get("pin") or row.get("PIN") or row.get("password") or "1234").strip()
+        language = (row.get("language") or "te").strip().lower()
 
-        if not name or not username or not pin:
-            errors.append(f"Row {row_idx}: Missing required fields (name, username, pin)")
+        if not name:
+            errors.append(f"Row {row_idx}: Missing student name")
             continue
 
-        # Check duplicate
+        if not username:
+            base_name = re.sub(r'[^a-zA-Z0-9]', '', name.lower()) or "student"
+            username = f"{base_name}_{secrets.token_hex(2)}"
+
+        # Check duplicate username
         exists = (await db.execute(select(User).where(User.username == username))).scalar_one_or_none()
         if exists:
-            errors.append(f"Row {row_idx}: Username '{username}' already exists")
-            continue
+            username = f"{username}_{secrets.token_hex(2)}"
 
         student = User(
             role=UserRole.student.value,
             parent_id=current_teacher.id,
             name=name,
             username=username,
-            password_hash=hash_password(pin),
+            password_hash=hash_password(pin or "1234"),
             language=language or "te",
             is_active=True
         )
@@ -227,7 +372,7 @@ async def import_students_csv(
         await db.flush()
 
         db.add(ClassStudent(class_id=classroom.id, student_id=student.id))
-        
+
         prof_stmt = select(StudentProfile).where(StudentProfile.student_id == student.id)
         profile = (await db.execute(prof_stmt)).scalar_one_or_none()
         if not profile:

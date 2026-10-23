@@ -92,10 +92,21 @@ async def student_login(credentials: StudentLoginRequest, db: AsyncSession = Dep
     students = result.scalars().all()
 
     matched_student = None
-    for s in students:
-        if verify_password(credentials.pin, s.password_hash):
-            matched_student = s
-            break
+
+    # If student provided their identifier (roll number, username, or name), try to match that first
+    if credentials.identifier and credentials.identifier.strip():
+        ident = credentials.identifier.strip().lower()
+        candidates = [s for s in students if s.username.lower() == ident or s.name.lower() == ident]
+        for s in candidates:
+            if verify_password(credentials.pin, s.password_hash):
+                matched_student = s
+                break
+
+    if not matched_student:
+        for s in students:
+            if verify_password(credentials.pin, s.password_hash):
+                matched_student = s
+                break
 
     if not matched_student:
         raise HTTPException(

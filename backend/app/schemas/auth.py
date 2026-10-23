@@ -33,6 +33,7 @@ class LoginRequest(BaseModel):
 class StudentLoginRequest(BaseModel):
     class_code: str
     pin: str
+    identifier: Optional[str] = None
 
 
 class RefreshTokenRequest(BaseModel):

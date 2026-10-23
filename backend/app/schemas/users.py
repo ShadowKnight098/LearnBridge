@@ -55,10 +55,11 @@ class ClassResponse(BaseModel):
 
 class StudentCreate(BaseModel):
     name: str
-    username: str
-    pin: str = Field(min_length=4, max_length=6)
+    username: Optional[str] = None
+    roll_number: Optional[str] = None
+    pin: str = Field(default="1234", min_length=4, max_length=6)
     language: str = "te"
-    class_id: str
+    class_id: Optional[str] = None
 
 
 class StudentResponse(BaseModel):
@@ -68,6 +69,8 @@ class StudentResponse(BaseModel):
     role: str
     name: str
     username: str
+    roll_number: Optional[str] = None
+    pin: Optional[str] = None
     language: str
     is_active: bool
     class_id: Optional[str] = None
@@ -76,3 +79,5 @@ class StudentResponse(BaseModel):
     level: Optional[int] = 1
     coins: Optional[int] = 0
     current_streak: Optional[int] = 0
+    accuracy: Optional[int] = 75
+    weak_skill: Optional[str] = None

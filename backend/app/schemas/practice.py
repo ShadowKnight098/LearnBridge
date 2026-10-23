@@ -5,7 +5,13 @@ from datetime import datetime
 
 class PracticeSessionStart(BaseModel):
     is_diagnostic: bool = False
+    session_type: Optional[str] = None
+    skill_id: Optional[str] = None
     language: Optional[str] = None
+
+    @property
+    def final_is_diagnostic(self) -> bool:
+        return self.is_diagnostic or (self.session_type == "diagnostic")
 
 
 class QuestionItemResponse(BaseModel):
@@ -26,15 +32,34 @@ class SessionStartResponse(BaseModel):
     current_question_number: int
     total_questions: int
     first_question: Optional[QuestionItemResponse] = None
+    question: Optional[QuestionItemResponse] = None
     daily_cap_reached: bool = False
     message: Optional[str] = None
 
 
 class AnswerSubmission(BaseModel):
     question_id: str
-    chosen_index: int
-    time_taken_ms: int
+    chosen_index: Optional[int] = None
+    selected_index: Optional[int] = None
+    time_taken_ms: Optional[int] = None
+    time_spent_ms: Optional[int] = None
     language: Optional[str] = None
+
+    @property
+    def final_chosen_index(self) -> int:
+        if self.chosen_index is not None:
+            return self.chosen_index
+        if self.selected_index is not None:
+            return self.selected_index
+        return 0
+
+    @property
+    def final_time_taken_ms(self) -> int:
+        if self.time_taken_ms is not None:
+            return self.time_taken_ms
+        if self.time_spent_ms is not None:
+            return self.time_spent_ms
+        return 2000
 
 
 class SessionSummary(BaseModel):
@@ -52,13 +77,15 @@ class SessionSummary(BaseModel):
 class AnswerResponse(BaseModel):
     is_correct: bool
     correct_index: int
+    correct_answer_index: Optional[int] = None
     explanation: Optional[str] = None
     xp_gained: int
-    flagged: bool
+    xp_earned: Optional[int] = None
+    flagged: bool = False
     current_question_number: int
     total_questions: int
     next_question: Optional[QuestionItemResponse] = None
-    is_completed: bool
+    is_completed: bool = False
     summary: Optional[SessionSummary] = None
 
 
