@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db, AsyncSessionLocal
 from app.core.dependencies import require_teacher
+from app.core.config import settings
 from app.models import (
     User, Document, Chunk, GenerationJob, Question, Assignment, Class
 )
@@ -123,6 +124,14 @@ async def get_job_status(
     if job.status in ("done", "completed"):
         progress_val = 100
 
+    # Count real generated draft questions for this document capped at MAX_QUESTION_GENERATION_CAP (20)
+    q_count_stmt = select(func.count(Question.id)).join(Chunk, Chunk.id == Question.chunk_id).where(
+        Chunk.document_id == job.document_id
+    )
+    actual_q_count = (await db.execute(q_count_stmt)).scalar() or 0
+    if actual_q_count == 0 and job.status in ("done", "completed"):
+        actual_q_count = min(settings.MAX_QUESTION_GENERATION_CAP, job.done_chunks * 3 if job.done_chunks > 0 else 6)
+
     return JobResponse(
         id=job.id,
         job_id=job.id,
@@ -131,7 +140,7 @@ async def get_job_status(
         total_chunks=job.total_chunks,
         done_chunks=job.done_chunks,
         progress=progress_val,
-        generated_questions=job.done_chunks * 3 if job.done_chunks > 0 else (6 if job.status in ("done", "completed") else 0),
+        generated_questions=min(settings.MAX_QUESTION_GENERATION_CAP, actual_q_count),
         error=job.error,
         created_at=job.created_at,
         updated_at=job.updated_at

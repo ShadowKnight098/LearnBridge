@@ -15,43 +15,67 @@ export const LanguageToggle: React.FC<{ minimal?: boolean }> = ({ minimal = fals
 
   if (minimal) {
     return (
-      <div className="flex items-center gap-1 bg-white/80 backdrop-blur rounded-full p-1 border border-purple-200 shadow-sm">
-        <Globe className="w-4 h-4 text-purple-600 ml-2" />
-        {languages.map((l) => (
-          <button
-            key={l.code}
-            onClick={() => setLanguage(l.code)}
-            className={`px-3 py-1 text-sm font-semibold rounded-full transition-all ${
-              language === l.code
-                ? "bg-purple-600 text-white shadow-sm"
-                : "text-slate-600 hover:text-purple-600 hover:bg-purple-50"
-            }`}
-            aria-label={`Switch language to ${l.native}`}
-          >
-            {l.label}
-          </button>
-        ))}
+      <div
+        className="inline-flex items-center gap-0.5 bg-slate-100/90 p-1 rounded-full border border-slate-200/80 shadow-xs"
+        role="group"
+        aria-label="Language selector"
+        suppressHydrationWarning
+      >
+        <div className="pl-1.5 pr-0.5 flex items-center text-slate-400">
+          <Globe className="w-3.5 h-3.5" />
+        </div>
+        {languages.map((l) => {
+          const isActive = language === l.code;
+          return (
+            <button
+              key={l.code}
+              onClick={() => setLanguage(l.code)}
+              className={`px-2.5 py-1 text-xs font-bold rounded-full transition-all duration-150 select-none ${
+                isActive
+                  ? "bg-white text-purple-700 shadow-xs scale-100 font-extrabold"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-white/60 active:scale-95"
+              }`}
+              aria-label={`Switch language to ${l.native}`}
+              aria-pressed={isActive}
+              suppressHydrationWarning
+            >
+              {l.label}
+            </button>
+          );
+        })}
       </div>
     );
   }
 
   return (
-    <div className="inline-flex items-center rounded-2xl bg-white p-1.5 shadow-md border border-slate-200">
-      <Globe className="w-5 h-5 text-indigo-500 ml-2 mr-1" />
-      {languages.map((l) => (
-        <button
-          key={l.code}
-          onClick={() => setLanguage(l.code)}
-          className={`px-4 py-2 text-base font-bold rounded-xl transition-all ${
-            language === l.code
-              ? "bg-indigo-600 text-white shadow-md scale-105"
-              : "text-slate-600 hover:text-indigo-600 hover:bg-slate-50"
-          }`}
-          aria-label={`Switch language to ${l.native}`}
-        >
-          {l.native}
-        </button>
-      ))}
+    <div
+      className="inline-flex items-center gap-1 bg-white/95 backdrop-blur-md p-1.5 rounded-2xl shadow-sm border border-slate-200/90"
+      role="group"
+      aria-label="Language selector"
+      suppressHydrationWarning
+    >
+      <div className="pl-2 pr-1 flex items-center text-indigo-500">
+        <Globe className="w-4 h-4" />
+      </div>
+      {languages.map((l) => {
+        const isActive = language === l.code;
+        return (
+          <button
+            key={l.code}
+            onClick={() => setLanguage(l.code)}
+            className={`px-3.5 py-1.5 text-sm font-bold rounded-xl transition-all duration-150 select-none ${
+              isActive
+                ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-sm shadow-purple-500/20 scale-[1.02]"
+                : "text-slate-600 hover:text-indigo-600 hover:bg-slate-50 active:scale-95"
+            }`}
+            aria-label={`Switch language to ${l.native}`}
+            aria-pressed={isActive}
+            suppressHydrationWarning
+          >
+            {l.native}
+          </button>
+        );
+      })}
     </div>
   );
 };

@@ -263,15 +263,6 @@ async def seed():
                 profile.streak_freezes = 1
                 profile.avatar_config = {"color": "#6C4DF6", "hat": None, "theme": "default"}
 
-                # Initialize starting mastery (0.3) for key skills
-                for skill_id in ["NUM-01", "NUM-02", "NUM-03", "NUM-04", "LIT-01", "LIT-03", "LIT-05"]:
-                    session.add(Mastery(
-                        student_id=student.id,
-                        skill_id=skill_id,
-                        score=0.3,
-                        attempts=0
-                    ))
-
         await session.commit()
         print("Database seeded successfully!")
 

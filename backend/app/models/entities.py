@@ -293,7 +293,7 @@ class RewardEvent(Base):
 
     id: Mapped[str] = mapped_column(Uuid(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
     student_id: Mapped[str] = mapped_column(Uuid(as_uuid=False), ForeignKey("users.id"), nullable=False, index=True)
-    type: Mapped[str] = mapped_column(SQLEnum(RewardType, name="reward_type", native_enum=True, values_callable=lambda x: [e.value for e in x]), nullable=False)
+    type: Mapped[str] = mapped_column(SQLEnum(RewardType, name="reward_type", native_enum=False, values_callable=lambda x: [e.value for e in x]), nullable=False)
     amount: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
@@ -323,7 +323,7 @@ class Challenge(Base):
     __tablename__ = "challenges"
 
     id: Mapped[str] = mapped_column(Uuid(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
-    scope: Mapped[str] = mapped_column(SQLEnum(ChallengeScope, name="challenge_scope", native_enum=True, values_callable=lambda x: [e.value for e in x]), default="student", nullable=False)
+    scope: Mapped[str] = mapped_column(SQLEnum(ChallengeScope, name="challenge_scope", native_enum=False, values_callable=lambda x: [e.value for e in x]), default="student", nullable=False)
     class_id: Mapped[Optional[str]] = mapped_column(Uuid(as_uuid=False), ForeignKey("classes.id"), nullable=True)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     target: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -338,7 +338,7 @@ class ReportSnapshot(Base):
     __tablename__ = "report_snapshots"
 
     id: Mapped[str] = mapped_column(Uuid(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
-    scope: Mapped[str] = mapped_column(SQLEnum(ReportScope, name="report_scope", native_enum=True, values_callable=lambda x: [e.value for e in x]), nullable=False)
+    scope: Mapped[str] = mapped_column(SQLEnum(ReportScope, name="report_scope", native_enum=False, values_callable=lambda x: [e.value for e in x]), nullable=False)
     scope_id: Mapped[Optional[str]] = mapped_column(Uuid(as_uuid=False), nullable=True)
     payload: Mapped[dict] = mapped_column(JSON, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
@@ -350,7 +350,7 @@ class Alert(Base):
     id: Mapped[str] = mapped_column(Uuid(as_uuid=False), primary_key=True, default=lambda: str(uuid.uuid4()))
     teacher_id: Mapped[str] = mapped_column(Uuid(as_uuid=False), ForeignKey("users.id"), nullable=False, index=True)
     student_id: Mapped[str] = mapped_column(Uuid(as_uuid=False), ForeignKey("users.id"), nullable=False, index=True)
-    kind: Mapped[str] = mapped_column(SQLEnum(AlertKind, name="alert_kind", native_enum=True, values_callable=lambda x: [e.value for e in x]), nullable=False)
+    kind: Mapped[str] = mapped_column(SQLEnum(AlertKind, name="alert_kind", native_enum=False, values_callable=lambda x: [e.value for e in x]), nullable=False)
     detail: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     resolved: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)

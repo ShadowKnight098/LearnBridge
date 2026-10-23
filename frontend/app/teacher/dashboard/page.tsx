@@ -22,6 +22,7 @@ export default function TeacherDashboardPage() {
   const router = useRouter();
   const { t } = useTranslation();
 
+  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [classes, setClasses] = useState<any[]>([]);
   const [draftsCount, setDraftsCount] = useState(0);
@@ -29,6 +30,7 @@ export default function TeacherDashboardPage() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
+    setMounted(true);
     const localUser = getStoredUser();
     if (!localUser || localUser.role !== "teacher") {
       router.push("/login");
@@ -49,7 +51,7 @@ export default function TeacherDashboardPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col" suppressHydrationWarning>
       <PortalHeader role="teacher" />
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
@@ -59,8 +61,8 @@ export default function TeacherDashboardPage() {
             <span className="text-xs uppercase font-extrabold tracking-wider bg-white/20 px-3 py-1 rounded-full">
               Teacher Dashboard
             </span>
-            <h1 className="text-2xl sm:text-3xl font-black mt-2">
-              Welcome back, {user?.name || "Teacher"}!
+            <h1 className="text-2xl sm:text-3xl font-black mt-2" suppressHydrationWarning>
+              Welcome back, {mounted ? (user?.name || "Teacher") : "Teacher"}!
             </h1>
             <p className="text-blue-100 text-sm sm:text-base mt-1 max-w-xl">
               Monitor student mastery in real time, extract curricula from textbooks in your browser, and review AI-aligned practice questions.

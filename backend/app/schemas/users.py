@@ -79,5 +79,5 @@ class StudentResponse(BaseModel):
     level: Optional[int] = 1
     coins: Optional[int] = 0
     current_streak: Optional[int] = 0
-    accuracy: Optional[int] = 75
+    accuracy: Optional[int] = None
     weak_skill: Optional[str] = None

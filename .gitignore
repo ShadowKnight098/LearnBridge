@@ -60,3 +60,7 @@ Thumbs.db
 .claude/
 scratch/
 graphify-out/cache/
+.anatomy-ref/
+*.zip
+etlmm1dd/
+presentation.html

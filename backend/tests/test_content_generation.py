@@ -136,3 +136,45 @@ async def test_document_and_review_workflow(client, teacher_auth):
     assert approve_res.status_code == 200
     assert approve_res.json()["status"] == "approved"
     assert approve_res.json()["approved_at"] is not None
+
+
+@pytest.mark.asyncio
+async def test_generation_capped_at_20_questions(client, teacher_auth, mocker):
+    """Verify question generation is strictly capped at 20 questions even with many chunks."""
+    # Mock LLM to return empty so it immediately uses fast local generator
+    mocker.patch("app.services.generator.call_llm", return_value="")
+
+    teacher, token = teacher_auth
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Register Document
+    doc_res = await client.post(
+        "/teacher/documents",
+        json={"filename": "large_curriculum.pdf", "subject": "Math", "grade": 3, "language": "en"},
+        headers=headers
+    )
+    assert doc_res.status_code == 201
+    doc_id = doc_res.json()["id"]
+
+    # Upload 10 chunks (which would produce ~30-40 questions without cap)
+    many_chunks = [
+        {"page_no": i + 1, "position": i, "text": f"Chapter section {i+1}: Addition and counting rules with multiple examples and practice problems."}
+        for i in range(10)
+    ]
+    chunk_res = await client.post(
+        f"/teacher/documents/{doc_id}/chunks",
+        json={"chunks": many_chunks},
+        headers=headers
+    )
+    assert chunk_res.status_code == 202
+    job_id = chunk_res.json()["id"]
+
+    # Execute generation worker
+    await process_document_generation(doc_id, job_id, AsyncSessionLocal)
+
+    # Job status should report <= 20 questions
+    job_res = await client.get(f"/teacher/jobs/{job_id}", headers=headers)
+    assert job_res.status_code == 200
+    job_data = job_res.json()
+    assert job_data["status"] == "done"
+    assert job_data["generated_questions"] <= 20

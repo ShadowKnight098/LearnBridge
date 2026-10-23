@@ -8,6 +8,7 @@ if sys.platform == "win32":
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 import sys
 
@@ -35,12 +36,39 @@ app = FastAPI(
 async def add_security_headers(request: Request, call_next):
     if request.method == "OPTIONS":
         return await call_next(request)
-    response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
-    return response
+    try:
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        return response
+    except Exception as exc:
+        origin = request.headers.get("origin", "*")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Internal Server Error", "error": str(exc)},
+            headers={
+                "Access-Control-Allow-Origin": origin if origin else "*",
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "*",
+            }
+        )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    origin = request.headers.get("origin", "*")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal Server Error", "error": str(exc)},
+        headers={
+            "Access-Control-Allow-Origin": origin if origin else "*",
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+        }
+    )
 
 # CORS Middleware (outermost middleware)
 app.add_middleware(
@@ -53,6 +81,9 @@ app.add_middleware(
     expose_headers=["*"],
     max_age=86400,
 )
+
+# Compression Middleware (compress JSON responses >= 1KB)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Include Routers
 app.include_router(auth_router)

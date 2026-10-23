@@ -16,6 +16,7 @@ import {
   Gift,
   Home,
   RefreshCw,
+  Loader2,
 } from "lucide-react";
 import { useTranslation, Language } from "../../../lib/i18n";
 import { api, getStoredUser } from "../../../lib/api";
@@ -107,6 +108,7 @@ export default function PracticePlayerPage() {
   // Interaction state
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{
     is_correct: boolean;
     correct_answer_index: number;
@@ -259,12 +261,13 @@ export default function PracticePlayerPage() {
   };
 
   const handleSubmitAnswer = async () => {
-    if (selectedOption === null || !sessionId || !currentQuestion || isAnswered) return;
+    if (selectedOption === null || !sessionId || !currentQuestion || isAnswered || submitting) return;
 
     // Ensure at least 1600ms to avoid false anti-gaming flag
     const timeSpentMs = Math.max(1600, Date.now() - questionStartTime.current);
 
     try {
+      setSubmitting(true);
       let result: any;
       if (sessionId === "fallback-session") {
         const correctIdx = currentQuestion.correct_answer_index ?? currentQuestion.correct_index ?? 1;
@@ -323,6 +326,8 @@ export default function PracticePlayerPage() {
       }
     } catch (err: any) {
       alert(err.message || "Error submitting answer");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -478,8 +483,17 @@ export default function PracticePlayerPage() {
 
   if (loading || !currentQuestion) {
     return (
-      <div className="min-h-screen bg-student-bg flex items-center justify-center p-4">
-        <Mascot mood="thinking" speech={t("common.loading", "Preparing your next question...")} />
+      <div className="min-h-screen bg-student-bg flex flex-col justify-between">
+        <StudentHeader showBack backHref="/student/home" />
+        <main className="max-w-2xl w-full mx-auto p-4 sm:p-6 space-y-4 flex-1 flex flex-col justify-center">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-md border-2 border-purple-200 text-center space-y-4">
+            <Mascot mood="thinking" size="md" speech={t("common.loading", "Preparing your practice questions... 🌟")} />
+            <div className="flex justify-center items-center gap-2 text-purple-700 font-bold text-sm">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Loading curriculum content...</span>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
@@ -607,15 +621,24 @@ export default function PracticePlayerPage() {
         {!isAnswered && (
           <button
             onClick={handleSubmitAnswer}
-            disabled={selectedOption === null}
+            disabled={selectedOption === null || submitting}
             className={`w-full min-h-[56px] py-4 rounded-2xl font-black text-xl shadow-lg transition-all flex items-center justify-center gap-2 ${
-              selectedOption !== null
+              selectedOption !== null && !submitting
                 ? "bg-purple-600 hover:bg-purple-700 text-white cursor-pointer active:scale-98"
                 : "bg-slate-200 text-slate-400 cursor-not-allowed"
             }`}
           >
-            <CheckCircle className="w-6 h-6" />
-            <span>{t("student.submit", "Check Answer")}</span>
+            {submitting ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="w-6 h-6 animate-spin text-purple-700" />
+                <span className="text-purple-900 font-bold">Checking...</span>
+              </span>
+            ) : (
+              <>
+                <CheckCircle className="w-6 h-6" />
+                <span>{t("student.submit", "Check Answer")}</span>
+              </>
+            )}
           </button>
         )}
       </main>

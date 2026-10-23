@@ -2,16 +2,16 @@ import csv
 import io
 import re
 import secrets
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request, status
 from pydantic import BaseModel, Field
-from sqlalchemy import select, func
+from sqlalchemy import select, func, case
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.dependencies import require_teacher
 from app.core.security import hash_password
-from app.models import User, Class, ClassStudent, StudentProfile, Mastery, Skill, UserRole
+from app.models import User, Class, ClassStudent, StudentProfile, Mastery, Skill, UserRole, Attempt
 from app.schemas.users import ClassResponse, StudentCreate, StudentResponse
 
 router = APIRouter(prefix="/teacher", tags=["Teacher"], dependencies=[Depends(require_teacher)])
@@ -145,6 +145,38 @@ async def get_teacher_students(
     result = await db.execute(stmt)
     rows = result.all()
 
+    student_ids = [user.id for user, *_ in rows]
+    stats_map = {}
+    weak_map = {}
+
+    if student_ids:
+        attempts_stmt = select(
+            Attempt.student_id,
+            func.count(Attempt.id).label("total_attempts"),
+            func.sum(case((Attempt.is_correct == True, 1), else_=0)).label("correct_attempts")
+        ).where(
+            Attempt.student_id.in_(student_ids)
+        ).group_by(Attempt.student_id)
+        attempt_stats = (await db.execute(attempts_stmt)).all()
+        stats_map = {row[0]: (row[1], row[2] or 0) for row in attempt_stats}
+
+        weak_stmt = select(
+            Mastery.student_id,
+            Mastery.skill_id,
+            Mastery.score,
+            Skill.name
+        ).join(
+            Skill, Skill.id == Mastery.skill_id
+        ).where(
+            Mastery.student_id.in_(student_ids),
+            Mastery.attempts > 0,
+            Mastery.score < 0.70
+        ).order_by(Mastery.student_id, Mastery.score.asc())
+        weak_rows = (await db.execute(weak_stmt)).all()
+        for sid, skill_id, score, skill_name in weak_rows:
+            if sid not in weak_map:
+                weak_map[sid] = skill_name or skill_id
+
     return [
         {
             "id": user.id,
@@ -161,8 +193,8 @@ async def get_teacher_students(
             "level": lvl or 1,
             "coins": coins or 0,
             "current_streak": streak or 0,
-            "accuracy": 78,
-            "weak_skill": "Numeracy"
+            "accuracy": round((stats_map[user.id][1] / stats_map[user.id][0]) * 100) if (user.id in stats_map and stats_map[user.id][0] > 0) else None,
+            "weak_skill": weak_map.get(user.id)
         }
         for user, cid, cname, xp, lvl, coins, streak in rows
     ]
@@ -245,17 +277,13 @@ async def create_student(
         db.add(profile)
     profile.xp = 0
     profile.level = 1
-    profile.coins = 20
+    profile.coins = 0
     profile.current_streak = 0
     profile.longest_streak = 0
-    profile.streak_freezes = 1
+    profile.streak_freezes = 0
     profile.avatar_config = {"color": "#6C4DF6", "hat": None, "theme": "default"}
 
-    # Initialize default mastery
-    skills_stmt = select(Skill.id).limit(8)
-    skill_ids = (await db.execute(skills_stmt)).scalars().all()
-    for sid in skill_ids:
-        db.add(Mastery(student_id=student.id, skill_id=sid, score=0.3, attempts=0))
+    # No default score or mastery is set — students earn scores through actual diagnostic/practice assessments!
 
     await db.commit()
     await db.refresh(student)
@@ -273,10 +301,10 @@ async def create_student(
         "class_name": classroom.name,
         "xp": 0,
         "level": 1,
-        "coins": 20,
+        "coins": 0,
         "current_streak": 0,
-        "accuracy": 75,
-        "weak_skill": "Numeracy"
+        "accuracy": None,
+        "weak_skill": None
     }
 
 
@@ -336,9 +364,6 @@ async def import_students_csv(
     imported = []
     errors = []
 
-    skills_stmt = select(Skill.id).limit(8)
-    skill_ids = (await db.execute(skills_stmt)).scalars().all()
-
     for row_idx, row in enumerate(reader, start=1):
         name = (row.get("name") or row.get("Name") or row.get("student_name") or "").strip()
         roll_num = (row.get("roll_number") or row.get("roll_no") or row.get("roll") or row.get("Roll Number") or "").strip()
@@ -380,13 +405,12 @@ async def import_students_csv(
             db.add(profile)
         profile.xp = 0
         profile.level = 1
-        profile.coins = 20
+        profile.coins = 0
         profile.current_streak = 0
         profile.longest_streak = 0
-        profile.streak_freezes = 1
+        profile.streak_freezes = 0
         profile.avatar_config = {"color": "#6C4DF6", "hat": None, "theme": "default"}
-        for sid in skill_ids:
-            db.add(Mastery(student_id=student.id, skill_id=sid, score=0.3, attempts=0))
+        # No default mastery or score is set
 
         imported.append(username)
 

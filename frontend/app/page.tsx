@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Globe, GraduationCap, ShieldCheck, Sparkles, BookOpen, ArrowRight } from "lucide-react";
 import { useTranslation, Language } from "../lib/i18n";
 import { Mascot } from "../components/Mascot";
+import { LanguageToggle } from "../components/LanguageToggle";
 
 export default function SplashPage() {
   const router = useRouter();
@@ -56,30 +57,42 @@ export default function SplashPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-purple-100 via-indigo-50/60 to-white flex flex-col justify-between p-4 sm:p-8">
-      {/* Top Bar with Brand and Educator Portal Access */}
-      <header className="max-w-5xl w-full mx-auto flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2.5">
-          <span className="text-3xl filter drop-shadow">🦉</span>
+      {/* Sticky Floating Modern Navbar */}
+      <header className="sticky top-3 sm:top-4 z-50 max-w-5xl w-full mx-auto bg-white/85 backdrop-blur-xl border border-purple-200/90 rounded-2xl sm:rounded-3xl px-3.5 py-2 sm:px-6 sm:py-3 shadow-md shadow-purple-950/5 flex items-center justify-between gap-3 transition-all">
+        {/* Brand */}
+        <Link href="/" className="group flex items-center gap-2.5 focus:outline-none">
+          <span className="text-2xl sm:text-3xl group-hover:rotate-6 group-hover:scale-105 active:scale-95 transition-transform select-none filter drop-shadow">
+            🦉
+          </span>
           <div className="flex flex-col">
-            <span className="text-2xl font-black text-purple-950 tracking-tight leading-none">
+            <span className="text-xl sm:text-2xl font-black text-purple-950 tracking-tight leading-none">
               LearnBridge
             </span>
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-700/80 mt-0.5">
+            <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-purple-700/80 mt-0.5">
               NEP 2020 • NIPUN Bharat
             </span>
           </div>
-        </div>
+        </Link>
 
-        <div className="flex items-center gap-3">
+        {/* Center / Right Controls */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <LanguageToggle minimal />
+
+          <Link
+            href="/student/login"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-purple-800 hover:text-purple-950 hover:bg-purple-100/60 active:scale-95 transition-all"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+            <span>Student PIN Login</span>
+          </Link>
+
           <Link
             href="/login"
-            className="group inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold bg-white/90 hover:bg-white text-purple-950 border border-purple-200 shadow-sm hover:shadow-md hover:border-purple-300 transition-all"
+            className="group inline-flex items-center gap-2 px-3.5 py-2 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold bg-gradient-to-r from-purple-700 to-indigo-600 text-white shadow-sm hover:shadow-md hover:from-purple-800 hover:to-indigo-700 active:scale-95 transition-all whitespace-nowrap"
           >
-            <div className="w-6 h-6 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
-              <GraduationCap className="w-3.5 h-3.5" />
-            </div>
-            <span>Staff & Educator Login</span>
-            <ArrowRight className="w-3.5 h-3.5 text-purple-400 group-hover:translate-x-0.5 transition-transform" />
+            <GraduationCap className="w-4 h-4" />
+            <span>Staff Login</span>
+            <ArrowRight className="w-3.5 h-3.5 text-purple-200 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
       </header>

@@ -25,13 +25,12 @@ export default function StudentHomePage() {
   const router = useRouter();
   const { t } = useTranslation();
 
-  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [rewards, setRewards] = useState({
-    xp: 45,
+    xp: 0,
     level: 1,
-    streak: 3,
-    coins: 60,
+    streak: 0,
+    coins: 0,
     badges: [] as any[],
   });
   const [progress, setProgress] = useState({
@@ -54,27 +53,18 @@ export default function StudentHomePage() {
     ]).then(([rData, pData]) => {
       if (rData) {
         setRewards({
-          xp: rData.xp,
-          level: rData.level,
-          streak: rData.streak,
-          coins: rData.coins,
+          xp: rData.xp ?? 0,
+          level: rData.level ?? 1,
+          streak: rData.streak ?? 0,
+          coins: rData.coins ?? 0,
           badges: rData.badges || [],
         });
       }
       if (pData) {
         setProgress(pData);
       }
-      setLoading(false);
     });
   }, [router]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-student-bg flex items-center justify-center p-4">
-        <Mascot mood="thinking" speech={t("common.loading", "Loading your learning dashboard...")} />
-      </div>
-    );
-  }
 
   // Calculate XP progress within current level
   const nextLevelXp = Math.pow(rewards.level, 2) * 50;

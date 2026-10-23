@@ -23,19 +23,24 @@ if db_url.startswith("postgres://"):
 elif db_url.startswith("postgresql://"):
     db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
 
+engine_kwargs = {
+    "echo": (settings.ENVIRONMENT == "development" and False),
+    "future": True,
+    "connect_args": connect_args,
+}
+
 if db_url.startswith("sqlite"):
     connect_args["check_same_thread"] = False
+else:
+    # High-performance connection pool configuration for serverless PostgreSQL (Neon)
+    engine_kwargs.update({
+        "pool_pre_ping": True,
+        "pool_recycle": 300,
+        "pool_size": 10,
+        "max_overflow": 20,
+    })
 
-engine = create_async_engine(
-    db_url,
-    echo=(settings.ENVIRONMENT == "development" and False),
-    future=True,
-    connect_args=connect_args
-)
-
-# SQLite configuration
-if db_url.startswith("sqlite"):
-    connect_args["check_same_thread"] = False
+engine = create_async_engine(db_url, **engine_kwargs)
 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,

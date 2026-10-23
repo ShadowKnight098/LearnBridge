@@ -82,7 +82,8 @@ export default function TeacherReportsPage() {
     }
   };
 
-  const getCellBg = (val: number = 0) => {
+  const getCellBg = (val: number | undefined | null) => {
+    if (val === undefined || val === null) return "bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100";
     if (val >= 0.7) return "bg-emerald-100 text-emerald-950 border-emerald-300 hover:bg-emerald-200";
     if (val >= 0.4) return "bg-amber-100 text-amber-950 border-amber-300 hover:bg-amber-200";
     return "bg-rose-100 text-rose-950 border-rose-300 hover:bg-rose-200";
@@ -95,7 +96,7 @@ export default function TeacherReportsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col" suppressHydrationWarning>
       <PortalHeader role="teacher" />
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
@@ -177,24 +178,30 @@ export default function TeacherReportsPage() {
                         {row.student_name}
                       </td>
                       {reportData.skills?.map((sk: any) => {
-                        const score = row.scores?.[sk.id] ?? 0.3;
+                        const score = row.scores?.[sk.id];
                         return (
                           <td key={sk.id} className="p-2">
                             <button
                               type="button"
-                              onClick={() =>
-                                setSelectedCell({
-                                  studentName: row.student_name,
-                                  skillName: sk.name,
-                                  score,
-                                })
-                              }
+                              onClick={() => {
+                                if (score !== undefined && score !== null) {
+                                  setSelectedCell({
+                                    studentName: row.student_name,
+                                    skillName: sk.name,
+                                    score,
+                                  });
+                                }
+                              }}
                               className={`w-full py-2.5 px-3 rounded-xl border font-bold text-xs transition-all ${getCellBg(
                                 score
                               )}`}
-                              title={`Click to inspect ${row.student_name}'s history in ${sk.name}`}
+                              title={
+                                score !== undefined && score !== null
+                                  ? `Click to inspect ${row.student_name}'s history in ${sk.name}`
+                                  : `${row.student_name} has not assessed ${sk.name} yet`
+                              }
                             >
-                              {Math.round(score * 100)}%
+                              {score !== undefined && score !== null ? `${Math.round(score * 100)}%` : "—"}
                             </button>
                           </td>
                         );

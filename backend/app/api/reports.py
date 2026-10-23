@@ -209,27 +209,31 @@ async def list_teacher_alerts(
     current_teacher: User = Depends(require_teacher),
     db: AsyncSession = Depends(get_db)
 ):
-    stmt = select(Alert, User.name.label("student_name")).join(
-        User, User.id == Alert.student_id
-    ).where(
-        Alert.teacher_id == current_teacher.id,
-        Alert.resolved == False
-    ).order_by(Alert.created_at.desc())
+    try:
+        stmt = select(Alert, User.name.label("student_name")).outerjoin(
+            User, User.id == Alert.student_id
+        ).where(
+            Alert.teacher_id == current_teacher.id,
+            Alert.resolved == False
+        ).order_by(Alert.created_at.desc())
 
-    rows = (await db.execute(stmt)).all()
-    return [
-        AlertResponse(
-            id=alert.id,
-            teacher_id=alert.teacher_id,
-            student_id=alert.student_id,
-            student_name=sname,
-            kind=alert.kind,
-            detail=alert.detail,
-            resolved=alert.resolved,
-            created_at=alert.created_at
-        )
-        for alert, sname in rows
-    ]
+        rows = (await db.execute(stmt)).all()
+        return [
+            AlertResponse(
+                id=alert.id,
+                teacher_id=alert.teacher_id,
+                student_id=alert.student_id,
+                student_name=sname,
+                kind=alert.kind,
+                detail=alert.detail,
+                resolved=alert.resolved,
+                created_at=alert.created_at
+            )
+            for alert, sname in rows
+        ]
+    except Exception as exc:
+        logger.warning(f"Failed to query teacher alerts: {exc}")
+        return []
 
 
 @router.patch("/teacher/alerts/{alert_id}/resolve", response_model=dict)

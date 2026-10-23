@@ -23,6 +23,7 @@ class Settings(BaseSettings):
 
     FRONTEND_ORIGIN: str = "https://learn-bridge-hazel.vercel.app"
     DAILY_SESSION_CAP: int = 5
+    MAX_QUESTION_GENERATION_CAP: int = 20
     ENVIRONMENT: str = "development"
     PORT: int = 8000
 

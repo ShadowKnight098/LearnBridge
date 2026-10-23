@@ -301,8 +301,15 @@ async def process_document_generation(document_id: str, job_id: str, db_factory)
         await session.commit()
 
         done_count = 0
+        total_generated = 0
+        max_questions_cap = settings.MAX_QUESTION_GENERATION_CAP  # Capped at 20 questions
+
         try:
             for chunk in chunks:
+                if total_generated >= max_questions_cap:
+                    break
+
+                remaining_slots = max_questions_cap - total_generated
                 prompt = build_generation_prompt(
                     grade=doc.grade,
                     subject=doc.subject,
@@ -329,7 +336,7 @@ async def process_document_generation(document_id: str, job_id: str, db_factory)
                         language=doc.language
                     )
 
-                for q_dict in validated_questions:
+                for q_dict in validated_questions[:remaining_slots]:
                     new_q = Question(
                         owner_id=doc.teacher_id,
                         chunk_id=chunk.id,
@@ -347,10 +354,14 @@ async def process_document_generation(document_id: str, job_id: str, db_factory)
                         status="draft"  # PRD FR-9: Saved as draft until approved!
                     )
                     session.add(new_q)
+                    total_generated += 1
 
                 done_count += 1
                 job.done_chunks = done_count
                 await session.commit()
+
+                if total_generated >= max_questions_cap:
+                    break
 
             job.status = "done"
             await session.commit()
