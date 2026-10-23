@@ -1,12 +1,16 @@
 import csv
 import io
+import logging
 import re
+import uuid as _uuid
 import secrets
 from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select, func, case
 from sqlalchemy.ext.asyncio import AsyncSession
+
+logger = logging.getLogger(__name__)
 
 from app.core.database import get_db
 from app.core.dependencies import require_teacher
@@ -120,84 +124,108 @@ async def get_teacher_students(
     current_teacher: User = Depends(require_teacher),
     db: AsyncSession = Depends(get_db)
 ):
-    stmt = select(
-        User,
-        Class.id.label("class_id"),
-        Class.name.label("class_name"),
-        StudentProfile.xp,
-        StudentProfile.level,
-        StudentProfile.coins,
-        StudentProfile.current_streak
-    ).join(
-        ClassStudent, ClassStudent.student_id == User.id
-    ).join(
-        Class, Class.id == ClassStudent.class_id
-    ).outerjoin(
-        StudentProfile, StudentProfile.student_id == User.id
-    ).where(
-        Class.teacher_id == current_teacher.id
-    )
-
-    if class_id and class_id not in ("default", "cls-demo-1"):
-        stmt = stmt.where(Class.id == class_id)
-
-    stmt = stmt.order_by(User.name)
-    result = await db.execute(stmt)
-    rows = result.all()
-
-    student_ids = [user.id for user, *_ in rows]
-    stats_map = {}
-    weak_map = {}
-
-    if student_ids:
-        attempts_stmt = select(
-            Attempt.student_id,
-            func.count(Attempt.id).label("total_attempts"),
-            func.sum(case((Attempt.is_correct == True, 1), else_=0)).label("correct_attempts")
-        ).where(
-            Attempt.student_id.in_(student_ids)
-        ).group_by(Attempt.student_id)
-        attempt_stats = (await db.execute(attempts_stmt)).all()
-        stats_map = {row[0]: (row[1], row[2] or 0) for row in attempt_stats}
-
-        weak_stmt = select(
-            Mastery.student_id,
-            Mastery.skill_id,
-            Mastery.score,
-            Skill.name
+    try:
+        stmt = select(
+            User,
+            Class.id.label("class_id"),
+            Class.name.label("class_name"),
+            StudentProfile.xp,
+            StudentProfile.level,
+            StudentProfile.coins,
+            StudentProfile.current_streak
         ).join(
-            Skill, Skill.id == Mastery.skill_id
+            ClassStudent, ClassStudent.student_id == User.id
+        ).join(
+            Class, Class.id == ClassStudent.class_id
+        ).outerjoin(
+            StudentProfile, StudentProfile.student_id == User.id
         ).where(
-            Mastery.student_id.in_(student_ids),
-            Mastery.attempts > 0,
-            Mastery.score < 0.70
-        ).order_by(Mastery.student_id, Mastery.score.asc())
-        weak_rows = (await db.execute(weak_stmt)).all()
-        for sid, skill_id, score, skill_name in weak_rows:
-            if sid not in weak_map:
-                weak_map[sid] = skill_name or skill_id
+            Class.teacher_id == current_teacher.id
+        )
 
-    return [
-        {
-            "id": user.id,
-            "role": user.role,
-            "name": user.name,
-            "username": user.username,
-            "roll_number": user.username,
-            "pin": "1234",
-            "language": user.language,
-            "is_active": user.is_active,
-            "class_id": cid,
-            "class_name": cname,
-            "xp": xp or 0,
-            "level": lvl or 1,
-            "coins": coins or 0,
-            "current_streak": streak or 0,
-            "accuracy": round((stats_map[user.id][1] / stats_map[user.id][0]) * 100) if (user.id in stats_map and stats_map[user.id][0] > 0) else None,
-            "weak_skill": weak_map.get(user.id)
-        }
-        for user, cid, cname, xp, lvl, coins, streak in rows
-    ]
+        if class_id and class_id not in ("default", "cls-demo-1"):
+            # Validate UUID format before querying; raw strings cause a
+            # PostgreSQL type-mismatch error (uuid vs text) → 500.
+            try:
+                _uuid.UUID(class_id)  # raises ValueError if malformed
+            except ValueError:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid class_id format: '{class_id}'"
+                )
+            from sqlalchemy import cast
+            from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+            stmt = stmt.where(Class.id == cast(class_id, PG_UUID))
+
+        stmt = stmt.order_by(User.name)
+        result = await db.execute(stmt)
+        rows = result.all()
+
+        student_ids = [user.id for user, *_ in rows if user and user.id]
+        stats_map = {}
+        weak_map = {}
+
+        if student_ids:
+            try:
+                attempts_stmt = select(
+                    Attempt.student_id,
+                    func.count(Attempt.id).label("total_attempts"),
+                    func.sum(case((Attempt.is_correct == True, 1), else_=0)).label("correct_attempts")
+                ).where(
+                    Attempt.student_id.in_(student_ids)
+                ).group_by(Attempt.student_id)
+                attempt_stats = (await db.execute(attempts_stmt)).all()
+                stats_map = {row[0]: (row[1], row[2] or 0) for row in attempt_stats}
+            except Exception as ex:
+                logger.warning(f"Error fetching attempt stats: {ex}")
+
+            try:
+                weak_stmt = select(
+                    Mastery.student_id,
+                    Mastery.skill_id,
+                    Mastery.score,
+                    func.coalesce(Skill.name_en, Skill.id).label("skill_name")
+                ).outerjoin(
+                    Skill, Skill.id == Mastery.skill_id
+                ).where(
+                    Mastery.student_id.in_(student_ids),
+                    Mastery.attempts > 0,
+                    Mastery.score < 0.70
+                ).order_by(Mastery.student_id, Mastery.score.asc())
+                weak_rows = (await db.execute(weak_stmt)).all()
+                for sid, skill_id, score, skill_name in weak_rows:
+                    if sid not in weak_map:
+                        weak_map[sid] = skill_name or skill_id
+            except Exception as ex:
+                logger.warning(f"Error fetching weak skills: {ex}")
+
+        return [
+            {
+                "id": user.id,
+                "role": user.role.value if hasattr(user.role, "value") else str(user.role),
+                "name": user.name,
+                "username": user.username,
+                "roll_number": user.username,
+                "pin": "1234",
+                "language": user.language or "te",
+                "is_active": user.is_active,
+                "class_id": cid,
+                "class_name": cname,
+                "xp": xp or 0,
+                "level": lvl or 1,
+                "coins": coins or 0,
+                "current_streak": streak or 0,
+                "accuracy": round((stats_map[user.id][1] / stats_map[user.id][0]) * 100) if (user.id in stats_map and stats_map[user.id][0] > 0) else None,
+                "weak_skill": weak_map.get(user.id)
+            }
+            for user, cid, cname, xp, lvl, coins, streak in rows
+        ]
+    except Exception as e:
+        logger.error(f"Critical error in get_teacher_students: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch students: {str(e)}"
+        )
 
 
 @router.post("/students", response_model=StudentResponse, status_code=status.HTTP_201_CREATED)
