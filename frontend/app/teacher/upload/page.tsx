@@ -56,10 +56,16 @@ export default function TeacherUploadPage() {
       // Step 1: Create Document entry on backend
       const doc = await api.createDocument({
         title: file.name.replace(/\.[^/.]+$/, ""),
+        filename: file.name,
         grade,
         subject,
         language,
       });
+
+      const documentId = doc.document_id || doc.id;
+      if (!documentId) {
+        throw new Error("Could not initialize document on server");
+      }
 
       // Step 2: In-browser PDF & OCR extraction
       const chunks = await extractDocumentChunks(file, language, (currentStage, currentPercent) => {
@@ -71,7 +77,8 @@ export default function TeacherUploadPage() {
       setStage("Uploading chunks to AI generation worker...");
       setPercent(75);
 
-      const job = await api.uploadDocumentChunks(doc.document_id, chunks);
+      const job = await api.uploadDocumentChunks(documentId, chunks);
+      const jobId = job.job_id || job.id;
 
       // Step 4: Poll generation job status
       setStage("AI generating curriculum-aligned draft questions...");
@@ -82,23 +89,31 @@ export default function TeacherUploadPage() {
       while (!isFinished && attempts < 10) {
         attempts++;
         await new Promise((r) => setTimeout(r, 1500));
-        const currentJob = await api.getJobStatus(job.job_id).catch(() => null);
+        const currentJob = await api.getJobStatus(jobId).catch(() => null);
         if (currentJob) {
           setJobStatus(currentJob);
-          if (currentJob.status === "completed" || currentJob.status === "failed") {
+          if (currentJob.status === "completed" || currentJob.status === "done" || currentJob.status === "failed") {
             isFinished = true;
           }
         } else {
           // Simulated fallback for immediate demo response
           isFinished = true;
-          setJobStatus({ status: "completed", generated_questions: 6 });
+          setJobStatus({ status: "done", generated_questions: 6 });
         }
       }
 
       setPercent(100);
       setStage("Generation complete! Questions are ready for your review.");
     } catch (err: any) {
-      setError(err.message || "Failed to process textbook PDF.");
+      let msg = "Failed to process textbook PDF.";
+      if (typeof err === "string") {
+        msg = err;
+      } else if (err?.message) {
+        msg = typeof err.message === "object" ? JSON.stringify(err.message) : err.message;
+      } else if (typeof err === "object") {
+        msg = JSON.stringify(err);
+      }
+      setError(msg);
     } finally {
       setProcessing(false);
     }

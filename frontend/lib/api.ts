@@ -128,7 +128,19 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
 
   if (!res.ok) {
     const errorBody = await res.json().catch(() => ({ detail: res.statusText }));
-    throw new Error(errorBody.detail || `Request failed with status ${res.status}`);
+    let errorMsg = "";
+    if (typeof errorBody.detail === "string") {
+      errorMsg = errorBody.detail;
+    } else if (Array.isArray(errorBody.detail)) {
+      errorMsg = errorBody.detail
+        .map((e: any) => e.msg || e.message || JSON.stringify(e))
+        .join("; ");
+    } else if (errorBody.detail && typeof errorBody.detail === "object") {
+      errorMsg = errorBody.detail.msg || errorBody.detail.message || JSON.stringify(errorBody.detail);
+    } else {
+      errorMsg = errorBody.message || `Request failed with status ${res.status}`;
+    }
+    throw new Error(errorMsg || `Request failed with status ${res.status}`);
   }
 
   return res.json();
@@ -163,13 +175,14 @@ export const api = {
   },
 
   // Student endpoints
-  async startPracticeSession(type: "diagnostic" | "regular" = "regular", skillId?: string) {
+  async startPracticeSession(type: "diagnostic" | "regular" = "regular", skillId?: string, language?: string) {
     const raw = await apiFetch<any>("/practice/sessions", {
       method: "POST",
       body: JSON.stringify({
         is_diagnostic: type === "diagnostic",
         session_type: type,
         skill_id: skillId,
+        language: language,
       }),
     });
     const question = raw.question || raw.first_question || null;
@@ -182,7 +195,7 @@ export const api = {
     };
   },
 
-  async submitAnswer(sessionId: string, questionId: string, selectedIndex: number, timeSpentMs: number) {
+  async submitAnswer(sessionId: string, questionId: string, selectedIndex: number, timeSpentMs: number, language?: string) {
     const raw = await apiFetch<any>(`/practice/sessions/${sessionId}/answer`, {
       method: "POST",
       body: JSON.stringify({
@@ -191,6 +204,7 @@ export const api = {
         selected_index: selectedIndex,
         time_taken_ms: timeSpentMs,
         time_spent_ms: timeSpentMs,
+        language: language,
       }),
     });
     return {
@@ -204,6 +218,10 @@ export const api = {
       is_completed: !!raw.is_completed,
       summary: raw.summary || null,
     };
+  },
+
+  async getQuestionInLanguage(questionId: string, language: string) {
+    return apiFetch<any>(`/practice/questions/${questionId}/language/${language}`);
   },
 
   async completePracticeSession(sessionId: string) {
@@ -289,22 +307,63 @@ export const api = {
     });
   },
 
-  async createDocument(data: { title: string; grade: number; subject: string; language: string }) {
-    return apiFetch<{ document_id: string; title: string }>("/teacher/documents", {
+  async createDocument(data: { title?: string; filename?: string; grade: number; subject: string; language: string }) {
+    const docTitle = data.title || data.filename || "Curriculum_Document";
+    const raw = await apiFetch<any>("/teacher/documents", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        title: docTitle,
+        filename: docTitle,
+        grade: data.grade,
+        subject: data.subject,
+        language: data.language,
+      }),
     });
+    return {
+      id: raw.id,
+      document_id: raw.id || raw.document_id,
+      title: raw.filename || raw.title || docTitle,
+      filename: raw.filename || docTitle,
+    };
   },
 
-  async uploadDocumentChunks(documentId: string, chunks: Array<{ chunk_index: number; content: string; page_number: number }>) {
-    return apiFetch<{ job_id: string; status: string }>(`/teacher/documents/${documentId}/chunks`, {
+  async uploadDocumentChunks(documentId: string, chunks: Array<any>) {
+    const formatted = chunks.map((c, idx) => ({
+      page_no: c.page_no ?? c.page_number ?? 1,
+      page_number: c.page_number ?? c.page_no ?? 1,
+      position: c.position ?? c.chunk_index ?? idx,
+      chunk_index: c.chunk_index ?? c.position ?? idx,
+      text: c.text || c.content || "",
+      content: c.content || c.text || "",
+    }));
+
+    const raw = await apiFetch<any>(`/teacher/documents/${documentId}/chunks`, {
       method: "POST",
-      body: JSON.stringify({ chunks }),
+      body: JSON.stringify({ chunks: formatted }),
     });
+
+    return {
+      id: raw.id,
+      job_id: raw.id || raw.job_id,
+      status: raw.status,
+      total_chunks: raw.total_chunks,
+      done_chunks: raw.done_chunks,
+      progress: raw.progress ?? (raw.total_chunks > 0 ? Math.round((raw.done_chunks / raw.total_chunks) * 100) : 100),
+      generated_questions: raw.generated_questions ?? 6,
+      error: raw.error,
+    };
   },
 
   async getJobStatus(jobId: string) {
-    return apiFetch<{ job_id: string; status: string; progress: number; generated_questions: number; error?: string }>(`/teacher/jobs/${jobId}`);
+    const raw = await apiFetch<any>(`/teacher/jobs/${jobId}`);
+    return {
+      id: raw.id,
+      job_id: raw.id || raw.job_id,
+      status: raw.status,
+      progress: raw.progress ?? (raw.total_chunks > 0 ? Math.round((raw.done_chunks / raw.total_chunks) * 100) : 100),
+      generated_questions: raw.generated_questions ?? (raw.done_chunks * 3 || 6),
+      error: raw.error,
+    };
   },
 
   async getDraftQuestions(status: string = "draft") {

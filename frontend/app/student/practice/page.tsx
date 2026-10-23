@@ -23,6 +23,77 @@ import { Mascot } from "../../../components/Mascot";
 import { AudioButton } from "../../../components/AudioButton";
 import { StudentHeader } from "../../../components/StudentHeader";
 
+const DEMO_MULTILINGUAL_QUESTIONS: Record<string, Record<string, { text: string; options: string[]; explanation: string }>> = {
+  "q-fb-1": {
+    en: {
+      text: "How many stars are here: ⭐ ⭐ ⭐ ⭐ ⭐ ?",
+      options: ["3", "4", "5", "6"],
+      explanation: "Counting the stars one by one gives 5 stars.",
+    },
+    te: {
+      text: "ఇక్కడ ఎన్ని నక్షత్రాలు ఉన్నాయి: ⭐ ⭐ ⭐ ⭐ ⭐ ?",
+      options: ["3", "4", "5", "6"],
+      explanation: "ఒక్కొక్కటిగా లెక్కిస్తే మొత్తం 5 నక్షత్రాలు ఉన్నాయి.",
+    },
+    hi: {
+      text: "यहाँ कितने तारे हैं: ⭐ ⭐ ⭐ ⭐ ⭐ ?",
+      options: ["3", "4", "5", "6"],
+      explanation: "एक-एक करके गिनने पर कुल 5 तारे हैं।",
+    },
+  },
+  "q-fb-2": {
+    en: {
+      text: "What is 4 + 3?",
+      options: ["6", "7", "8", "9"],
+      explanation: "4 plus 3 equals 7.",
+    },
+    te: {
+      text: "4 + 3 ఎంత?",
+      options: ["6", "7", "8", "9"],
+      explanation: "4 కు 3 కలిపితే 7 వస్తుంది.",
+    },
+    hi: {
+      text: "4 + 3 कितना होता है?",
+      options: ["6", "7", "8", "9"],
+      explanation: "4 में 3 जोड़ने पर 7 प्राप्त होता है।",
+    },
+  },
+  "q-fb-3": {
+    en: {
+      text: "Which number is greater: 47 or 74?",
+      options: ["47", "74", "Both are equal", "Cannot be determined"],
+      explanation: "74 has 7 tens, while 47 has only 4 tens. Therefore, 74 is greater.",
+    },
+    te: {
+      text: "వీటిలో ఏ సంఖ్య పెద్దది: 47 లేదా 74?",
+      options: ["47", "74", "రెండూ సమానం", "చెప్పలేము"],
+      explanation: "74 లో 7 పదులు ఉన్నాయి, కాబట్టి 74 పెద్దది.",
+    },
+    hi: {
+      text: "इनमें से कौन सी संख्या बड़ी है: 47 या 74?",
+      options: ["47", "74", "दोनों बराबर हैं", "कहा नहीं जा सकता"],
+      explanation: "74 में 7 दहाई हैं, इसलिए 74 बड़ा है।",
+    },
+  },
+  "q-fb-4": {
+    en: {
+      text: "What is 15 + 23?",
+      options: ["36", "38", "48", "37"],
+      explanation: "15 plus 23 equals 38.",
+    },
+    te: {
+      text: "15 + 23 ఎంత?",
+      options: ["36", "38", "48", "37"],
+      explanation: "15 కు 23 కలిపితే 38 వస్తుంది.",
+    },
+    hi: {
+      text: "15 + 23 कितना होता है?",
+      options: ["36", "38", "48", "37"],
+      explanation: "15 में 23 जोड़ने पर 38 प्राप्त होता है।",
+    },
+  },
+};
+
 export default function PracticePlayerPage() {
   const router = useRouter();
   const { t, language } = useTranslation();
@@ -80,10 +151,46 @@ export default function PracticePlayerPage() {
     startNewSession(skillParam);
   }, []);
 
+  // Listen for language changes and immediately update the active question
+  useEffect(() => {
+    if (!currentQuestion) return;
+    handleLanguageSwitch(language);
+  }, [language]);
+
+  const handleLanguageSwitch = async (newLang: string) => {
+    if (!currentQuestion) return;
+
+    // Check demo dictionary
+    const demo = DEMO_MULTILINGUAL_QUESTIONS[currentQuestion.id];
+    if (demo && demo[newLang]) {
+      setCurrentQuestion((prev: any) => ({
+        ...prev,
+        text: demo[newLang].text,
+        options: demo[newLang].options,
+        explanation: demo[newLang].explanation,
+      }));
+      return;
+    }
+
+    try {
+      const switched = await api.getQuestionInLanguage(currentQuestion.id, newLang);
+      if (switched && switched.text) {
+        setCurrentQuestion((prev: any) => ({
+          ...prev,
+          id: switched.id,
+          text: switched.text,
+          options: switched.options,
+        }));
+      }
+    } catch {
+      // Keep existing question if switch fails
+    }
+  };
+
   const startNewSession = async (skillId?: string) => {
     try {
       setLoading(true);
-      const res = await api.startPracticeSession("regular", skillId);
+      const res = await api.startPracticeSession("regular", skillId, language);
       if (res.daily_cap_reached) {
         setDailyCapReached(true);
         setLoading(false);
@@ -104,14 +211,15 @@ export default function PracticePlayerPage() {
         questionStartTime.current = Date.now();
       } else {
         // Safe fallback so quiz is never stuck
+        const fb1 = DEMO_MULTILINGUAL_QUESTIONS["q-fb-1"][language] || DEMO_MULTILINGUAL_QUESTIONS["q-fb-1"]["en"];
         setSessionId(res.session_id || "demo-session");
         setCurrentQuestion({
           id: "q-fb-1",
-          text: "How many stars are here: ⭐ ⭐ ⭐ ⭐ ⭐ ?",
-          options: ["3", "4", "5", "6"],
+          text: fb1.text,
+          options: fb1.options,
           correct_index: 2,
           correct_answer_index: 2,
-          explanation: "Counting the stars one by one gives 5 stars.",
+          explanation: fb1.explanation,
         });
         setQuestionNumber(1);
         setIsAnswered(false);
@@ -124,14 +232,15 @@ export default function PracticePlayerPage() {
         setDailyCapReached(true);
       } else {
         // Fallback question if network error
+        const fb1 = DEMO_MULTILINGUAL_QUESTIONS["q-fb-1"][language] || DEMO_MULTILINGUAL_QUESTIONS["q-fb-1"]["en"];
         setSessionId("fallback-session");
         setCurrentQuestion({
           id: "q-fb-1",
-          text: "What is 4 + 3?",
-          options: ["6", "7", "8", "9"],
-          correct_index: 1,
-          correct_answer_index: 1,
-          explanation: "4 plus 3 equals 7.",
+          text: fb1.text,
+          options: fb1.options,
+          correct_index: 2,
+          correct_answer_index: 2,
+          explanation: fb1.explanation,
         });
         setQuestionNumber(1);
         setIsAnswered(false);
@@ -160,18 +269,20 @@ export default function PracticePlayerPage() {
       if (sessionId === "fallback-session") {
         const correctIdx = currentQuestion.correct_answer_index ?? currentQuestion.correct_index ?? 1;
         const isCorrect = selectedOption === correctIdx;
+        const nextId = questionNumber === 1 ? "q-fb-2" : (questionNumber === 2 ? "q-fb-3" : "q-fb-4");
+        const nextData = DEMO_MULTILINGUAL_QUESTIONS[nextId]?.[language] || DEMO_MULTILINGUAL_QUESTIONS[nextId]?.["en"];
         result = {
           is_correct: isCorrect,
           correct_answer_index: correctIdx,
           explanation: currentQuestion.explanation || "Great effort!",
           xp_earned: isCorrect ? 10 : 0,
-          next_question: questionNumber < 5 ? {
-            id: `q-fb-${questionNumber + 1}`,
-            text: questionNumber === 1 ? "Which number is greater: 47 or 74?" : "What is 15 + 23?",
-            options: questionNumber === 1 ? ["47", "74", "Equal", "None"] : ["36", "38", "48", "37"],
+          next_question: questionNumber < 5 && nextData ? {
+            id: nextId,
+            text: nextData.text,
+            options: nextData.options,
             correct_index: 1,
             correct_answer_index: 1,
-            explanation: questionNumber === 1 ? "74 is greater than 47." : "15 + 23 = 38",
+            explanation: nextData.explanation,
           } : null,
           is_completed: questionNumber >= 5,
         };
@@ -180,7 +291,8 @@ export default function PracticePlayerPage() {
           sessionId,
           currentQuestion.id,
           selectedOption,
-          timeSpentMs
+          timeSpentMs,
+          language
         );
       }
 

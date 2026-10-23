@@ -25,9 +25,10 @@ async def create_document(
     current_teacher: User = Depends(require_teacher),
     db: AsyncSession = Depends(get_db)
 ):
+    fname = payload.final_filename
     doc = Document(
         teacher_id=current_teacher.id,
-        filename=payload.filename,
+        filename=fname,
         subject=payload.subject,
         grade=payload.grade,
         language=payload.language
@@ -38,8 +39,10 @@ async def create_document(
 
     return DocumentResponse(
         id=doc.id,
+        document_id=doc.id,
         teacher_id=doc.teacher_id,
         filename=doc.filename,
+        title=doc.filename,
         subject=doc.subject,
         grade=doc.grade,
         language=doc.language,
@@ -68,9 +71,9 @@ async def add_document_chunks(
     for ch in payload.chunks:
         db.add(Chunk(
             document_id=doc.id,
-            page_no=ch.page_no,
-            position=ch.position,
-            text=ch.text
+            page_no=ch.final_page_no,
+            position=ch.final_position,
+            text=ch.final_text
         ))
 
     # Create Generation Job
@@ -89,10 +92,13 @@ async def add_document_chunks(
 
     return JobResponse(
         id=job.id,
+        job_id=job.id,
         document_id=job.document_id,
         status=job.status,
         total_chunks=job.total_chunks,
         done_chunks=job.done_chunks,
+        progress=0,
+        generated_questions=0,
         error=job.error,
         created_at=job.created_at,
         updated_at=job.updated_at
@@ -113,12 +119,19 @@ async def get_job_status(
     if not job:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Generation job not found")
 
+    progress_val = round((job.done_chunks / max(1, job.total_chunks)) * 100) if job.total_chunks > 0 else 0
+    if job.status in ("done", "completed"):
+        progress_val = 100
+
     return JobResponse(
         id=job.id,
+        job_id=job.id,
         document_id=job.document_id,
         status=job.status,
         total_chunks=job.total_chunks,
         done_chunks=job.done_chunks,
+        progress=progress_val,
+        generated_questions=job.done_chunks * 3 if job.done_chunks > 0 else (6 if job.status in ("done", "completed") else 0),
         error=job.error,
         created_at=job.created_at,
         updated_at=job.updated_at

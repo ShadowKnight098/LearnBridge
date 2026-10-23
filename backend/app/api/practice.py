@@ -619,3 +619,69 @@ async def complete_practice_session(
         "bonus_coins": 25,
         "daily_cap_reached": False
     }
+
+
+@router.get("/questions/{question_id}/language/{target_lang}", response_model=QuestionItemResponse)
+async def get_question_in_language(
+    question_id: str,
+    target_lang: str,
+    db: AsyncSession = Depends(get_db)
+):
+    # 1. Fetch current question
+    q_stmt = select(Question).where(Question.id == question_id)
+    current_q = (await db.execute(q_stmt)).scalar_one_or_none()
+    if not current_q:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
+
+    if current_q.language == target_lang:
+        return QuestionItemResponse(
+            id=current_q.id,
+            skill_id=current_q.skill_id,
+            difficulty=current_q.difficulty,
+            language=current_q.language,
+            type=current_q.type,
+            text=current_q.text,
+            options=current_q.options
+        )
+
+    # 2. Match by concept_id in target_lang
+    target_q = None
+    if current_q.concept_id:
+        c_stmt = select(Question).where(
+            Question.concept_id == current_q.concept_id,
+            Question.language == target_lang,
+            Question.status == "approved"
+        )
+        target_q = (await db.execute(c_stmt)).scalars().first()
+
+    # 3. Match by same skill_id and difficulty in target_lang
+    if not target_q:
+        s_stmt = select(Question).where(
+            Question.skill_id == current_q.skill_id,
+            Question.difficulty == current_q.difficulty,
+            Question.language == target_lang,
+            Question.status == "approved"
+        )
+        target_q = (await db.execute(s_stmt)).scalars().first()
+
+    # 4. Match by any approved question in target_lang
+    if not target_q:
+        any_stmt = select(Question).where(
+            Question.language == target_lang,
+            Question.status == "approved"
+        )
+        target_q = (await db.execute(any_stmt)).scalars().first()
+
+    # Fallback to current question if target language pool is not available
+    if not target_q:
+        target_q = current_q
+
+    return QuestionItemResponse(
+        id=target_q.id,
+        skill_id=target_q.skill_id,
+        difficulty=target_q.difficulty,
+        language=target_q.language,
+        type=target_q.type,
+        text=target_q.text,
+        options=target_q.options
+    )

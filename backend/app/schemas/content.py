@@ -4,16 +4,40 @@ from pydantic import BaseModel, Field
 
 
 class DocumentCreate(BaseModel):
-    filename: str
-    subject: str
-    grade: int = Field(ge=1, le=12)
-    language: str  # te | hi | en
+    filename: Optional[str] = None
+    title: Optional[str] = None
+    subject: str = "Numeracy"
+    grade: int = Field(default=3, ge=1, le=12)
+    language: str = "en"  # te | hi | en
+
+    @property
+    def final_filename(self) -> str:
+        return self.filename or self.title or "Curriculum_Document.pdf"
 
 
 class ChunkInput(BaseModel):
     page_no: Optional[int] = None
-    position: int
-    text: str
+    page_number: Optional[int] = None
+    position: Optional[int] = None
+    chunk_index: Optional[int] = None
+    text: Optional[str] = None
+    content: Optional[str] = None
+
+    @property
+    def final_page_no(self) -> Optional[int]:
+        return self.page_no if self.page_no is not None else self.page_number
+
+    @property
+    def final_position(self) -> int:
+        if self.position is not None:
+            return self.position
+        if self.chunk_index is not None:
+            return self.chunk_index
+        return 0
+
+    @property
+    def final_text(self) -> str:
+        return self.text or self.content or ""
 
 
 class DocumentChunksPayload(BaseModel):
@@ -22,8 +46,10 @@ class DocumentChunksPayload(BaseModel):
 
 class DocumentResponse(BaseModel):
     id: str
+    document_id: Optional[str] = None
     teacher_id: str
     filename: str
+    title: Optional[str] = None
     subject: str
     grade: int
     language: str
@@ -33,10 +59,13 @@ class DocumentResponse(BaseModel):
 
 class JobResponse(BaseModel):
     id: str
+    job_id: Optional[str] = None
     document_id: str
     status: str
     total_chunks: int
     done_chunks: int
+    progress: Optional[int] = 0
+    generated_questions: Optional[int] = 0
     error: Optional[str] = None
     created_at: datetime
     updated_at: datetime
