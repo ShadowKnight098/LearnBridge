@@ -244,31 +244,31 @@ export const PortalHeader: React.FC<PortalHeaderProps> = ({ role }) => {
       </aside>
 
       {/* 2. MOBILE TOPBAR (< lg) */}
-      <header className="lg:hidden sticky top-0 z-40 w-full bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-xs px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <header className="lg:hidden sticky top-0 z-40 w-full bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-xs px-3 sm:px-4 h-16 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink">
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/80 active:scale-95 transition-all"
+            className="inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/80 active:scale-95 transition-all flex-shrink-0"
             aria-label="Open navigation menu"
           >
             <Menu className="w-5 h-5" />
           </button>
           <Link
             href={isTeacher ? "/teacher/dashboard" : "/admin/dashboard"}
-            className="flex items-center gap-2"
+            className="flex items-center gap-1.5 min-w-0 truncate"
           >
-            <span className="text-2xl">🦉</span>
-            <span className="font-extrabold text-lg text-slate-900 tracking-tight">
+            <span className="text-xl sm:text-2xl flex-shrink-0">🦉</span>
+            <span className="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight truncate">
               LearnBridge
             </span>
           </Link>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
           <LanguageToggle minimal />
           {user && (
             <div
-              className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs text-white shadow-xs ${
+              className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs text-white shadow-xs flex-shrink-0 ${
                 isTeacher
                   ? "bg-gradient-to-tr from-blue-600 to-indigo-600"
                   : "bg-gradient-to-tr from-purple-600 to-indigo-600"
@@ -280,45 +280,52 @@ export const PortalHeader: React.FC<PortalHeaderProps> = ({ role }) => {
         </div>
       </header>
 
-      {/* 3. MOBILE SLIDE-OUT LEFT DRAWER */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 flex">
-          {/* Backdrop overlay */}
-          <div
-            className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
-            onClick={() => setMobileMenuOpen(false)}
-          />
+      {/* 3. MOBILE SLIDE-OUT LEFT DRAWER WITH SMOOTH TRANSITION */}
+      <div
+        className={`lg:hidden fixed inset-0 z-50 flex transition-all duration-300 ${
+          mobileMenuOpen ? "pointer-events-auto visible" : "pointer-events-none invisible"
+        }`}
+        aria-hidden={!mobileMenuOpen}
+      >
+        {/* Backdrop overlay */}
+        <div
+          className={`fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-300 ease-in-out ${
+            mobileMenuOpen ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={() => setMobileMenuOpen(false)}
+        />
 
-          {/* Drawer sheet from the left */}
-          <div
-            ref={drawerRef}
-            className="relative w-72 max-w-[85vw] bg-white h-full shadow-2xl flex flex-col z-50 animate-in slide-in-from-left duration-200"
-          >
-            {/* Drawer Header */}
-            <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">🦉</span>
-                <span className="font-extrabold text-lg text-slate-900">
-                  LearnBridge
-                </span>
-              </div>
-              <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
-                aria-label="Close menu"
-              >
-                <X className="w-5 h-5" />
-              </button>
+        {/* Drawer sheet from the left with smooth slide */}
+        <div
+          ref={drawerRef}
+          className={`relative w-72 max-w-[85vw] bg-white h-full shadow-2xl flex flex-col z-50 transform transition-transform duration-300 ease-out will-change-transform ${
+            mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          {/* Drawer Header */}
+          <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">🦉</span>
+              <span className="font-extrabold text-lg text-slate-900">
+                LearnBridge
+              </span>
             </div>
-
-            {/* Navigation in Drawer */}
-            <div className="flex-1 overflow-y-auto py-2">{navLinksList}</div>
-
-            {/* Drawer Footer */}
-            {sidebarFooter}
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 active:scale-90 transition-all"
+              aria-label="Close menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
+
+          {/* Navigation in Drawer */}
+          <div className="flex-1 overflow-y-auto py-2">{navLinksList}</div>
+
+          {/* Drawer Footer */}
+          {sidebarFooter}
         </div>
-      )}
+      </div>
     </>
   );
 };

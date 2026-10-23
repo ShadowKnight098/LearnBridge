@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   BarChart3,
   Download,
@@ -10,15 +11,23 @@ import {
   Users,
 } from "lucide-react";
 import { PortalHeader } from "../../../components/PortalHeader";
-import { api } from "../../../lib/api";
+import { api, getStoredUser, getStoredToken } from "../../../lib/api";
 import { useTranslation } from "../../../lib/i18n";
 
 export default function AdminReportsPage() {
+  const router = useRouter();
   const { t } = useTranslation();
   const [report, setReport] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const user = getStoredUser();
+    const token = getStoredToken();
+    if (!token || !user || user.role !== "admin") {
+      router.push("/login");
+      return;
+    }
+
     api
       .getSchoolReport()
       .then((data) => {

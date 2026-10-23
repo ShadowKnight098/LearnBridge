@@ -7,7 +7,7 @@ import secrets
 from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request, status
 from pydantic import BaseModel, Field
-from sqlalchemy import select, func, case
+from sqlalchemy import select, func, case, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
@@ -266,26 +266,50 @@ async def create_student(
             await db.flush()
         classroom = t_cls
 
-    # Determine unique username
-    raw_username = (payload.username or "").strip()
+    # Determine unique username / roll identifier
+    roll_candidate = (payload.roll_number or "").strip()
+    clean_name = payload.name.strip()
+    raw_username = (payload.username or "").strip().lower()
     if not raw_username:
-        if payload.roll_number and payload.roll_number.strip():
-            raw_username = payload.roll_number.strip().lower().replace(" ", "_")
+        if roll_candidate:
+            raw_username = roll_candidate.lower().replace(" ", "_")
         else:
-            base_name = re.sub(r'[^a-zA-Z0-9]', '', payload.name.lower()) or "student"
-            raw_username = f"{base_name}_{secrets.token_hex(2)}"
+            base_name = re.sub(r'[^a-zA-Z0-9]', '', clean_name.lower()) or "student"
+            raw_username = base_name
 
-    # Check duplicate username
-    final_username = raw_username
-    u_stmt = select(User).where(User.username == final_username)
+    # Check if a student with this roll number or username or name already exists in this classroom
+    existing_in_class_stmt = (
+        select(User)
+        .join(ClassStudent, ClassStudent.student_id == User.id)
+        .where(
+            ClassStudent.class_id == classroom.id,
+            (User.username == raw_username) |
+            (User.username == roll_candidate.lower()) |
+            (func.lower(User.name) == clean_name.lower())
+        )
+    )
+    existing_student = (await db.execute(existing_in_class_stmt)).scalars().first()
+    if existing_student:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Student with Roll Number '{roll_candidate or raw_username}' or Name '{clean_name}' already exists in this classroom."
+        )
+
+    # Check if username is used in another class / globally
+    u_stmt = select(User).where(User.username == raw_username)
     if (await db.execute(u_stmt)).scalar_one_or_none():
-        final_username = f"{raw_username}_{secrets.token_hex(2)}"
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Roll number or username '{raw_username}' is already in use. Please use a unique roll number."
+        )
+
+    final_username = raw_username
 
     # Create student user
     student = User(
         role=UserRole.student.value,
         parent_id=current_teacher.id,
-        name=payload.name,
+        name=clean_name,
         username=final_username,
         password_hash=hash_password(payload.pin or "1234"),
         language=payload.language or "te",
@@ -334,6 +358,41 @@ async def create_student(
         "accuracy": None,
         "weak_skill": None
     }
+
+
+@router.delete("/students/{student_id}")
+async def delete_student(
+    student_id: str,
+    current_teacher: User = Depends(require_teacher),
+    db: AsyncSession = Depends(get_db)
+):
+    """Permanently delete a student and clean up all related records."""
+    stmt = (
+        select(User)
+        .join(ClassStudent, ClassStudent.student_id == User.id)
+        .join(Class, Class.id == ClassStudent.class_id)
+        .where(User.id == student_id, Class.teacher_id == current_teacher.id)
+    )
+    student = (await db.execute(stmt)).scalar_one_or_none()
+    if not student:
+        stmt2 = select(User).where(User.id == student_id, User.parent_id == current_teacher.id)
+        student = (await db.execute(stmt2)).scalar_one_or_none()
+
+    if not student:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Student not found or does not belong to your classroom"
+        )
+
+    # Cascade delete in foreign-key dependency order
+    await db.execute(delete(ClassStudent).where(ClassStudent.student_id == student_id))
+    await db.execute(delete(StudentProfile).where(StudentProfile.student_id == student_id))
+    await db.execute(delete(Attempt).where(Attempt.student_id == student_id))
+    await db.execute(delete(Mastery).where(Mastery.student_id == student_id))
+    await db.execute(delete(User).where(User.id == student_id))
+    await db.commit()
+
+    return {"success": True, "message": f"Student '{student.name}' removed successfully"}
 
 
 @router.post("/students/import")

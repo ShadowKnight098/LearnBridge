@@ -15,7 +15,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { PortalHeader } from "../../../components/PortalHeader";
-import { api, getStoredUser } from "../../../lib/api";
+import { api, getStoredUser, getStoredToken } from "../../../lib/api";
 import { useTranslation } from "../../../lib/i18n";
 
 export default function TeacherDashboardPage() {
@@ -23,6 +23,7 @@ export default function TeacherDashboardPage() {
   const { t } = useTranslation();
 
   const [mounted, setMounted] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [classes, setClasses] = useState<any[]>([]);
   const [draftsCount, setDraftsCount] = useState(0);
@@ -32,10 +33,12 @@ export default function TeacherDashboardPage() {
   useEffect(() => {
     setMounted(true);
     const localUser = getStoredUser();
-    if (!localUser || localUser.role !== "teacher") {
-      router.push("/login");
+    const token = getStoredToken();
+    if (!token || !localUser || localUser.role !== "teacher") {
+      router.replace("/login");
       return;
     }
+    setAuthChecked(true);
     setUser(localUser);
 
     Promise.all([
@@ -49,6 +52,17 @@ export default function TeacherDashboardPage() {
       setLoading(false);
     });
   }, [router]);
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm font-bold text-slate-600">Verifying educator credentials...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row" suppressHydrationWarning>

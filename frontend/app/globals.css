@@ -33,6 +33,22 @@ button, a, input, select {
   animation: softBounce 3s ease-in-out infinite;
 }
 
+/* Menu and dropdown smooth pop animation */
+@keyframes menuFadeSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-menu-pop {
+  animation: menuFadeSlide 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* Confetti container positioning */
 .confetti-canvas {
   position: fixed;

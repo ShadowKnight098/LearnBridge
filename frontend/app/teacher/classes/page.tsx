@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Users,
   UserPlus,
@@ -12,13 +13,17 @@ import {
   AlertCircle,
   X,
   TrendingUp,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import { PortalHeader } from "../../../components/PortalHeader";
-import { api } from "../../../lib/api";
+import { api, getStoredUser, getStoredToken } from "../../../lib/api";
 import { useTranslation } from "../../../lib/i18n";
 
 export default function TeacherClassesPage() {
+  const router = useRouter();
   const { t } = useTranslation();
+  const [authChecked, setAuthChecked] = useState(false);
   const [classes, setClasses] = useState<any[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [students, setStudents] = useState<any[]>([]);
@@ -36,34 +41,38 @@ export default function TeacherClassesPage() {
 
   // Form states
   const [newStudent, setNewStudent] = useState({ name: "", roll_number: "", pin: "1234" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [csvContent, setCsvContent] = useState(
     "name,roll_number,pin\nArjun,R-004,1234\nSneha,R-005,1234\nRahul,R-006,1234"
   );
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    const user = getStoredUser();
+    const token = getStoredToken();
+    if (!token || !user || user.role !== "teacher") {
+      router.replace("/login");
+      return;
+    }
+    setAuthChecked(true);
     loadClasses();
-  }, []);
+  }, [router]);
 
   const loadClasses = async () => {
     try {
       setLoading(true);
       const cls = await api.getTeacherClasses();
-      setClasses(cls);
-      if (cls.length > 0) {
+      setClasses(cls || []);
+      if (cls && cls.length > 0) {
         setSelectedClassId(cls[0].id);
         loadStudents(cls[0].id);
       } else {
         setLoading(false);
       }
     } catch {
-      // Demo mock fallback if API returns empty
-      const demoClasses = [{ id: "cls-demo-1", name: "Class 3-A", grade: 3, class_code: "CLS3A" }];
-      setClasses(demoClasses);
-      setSelectedClassId("cls-demo-1");
-      setStudents([
-        { id: "s1", name: "Aarav Sharma", roll_number: "R-001", pin: "1234", level: 1, streak: 0, accuracy: null, weak_skill: null },
-      ]);
+      setClasses([]);
+      setStudents([]);
       setLoading(false);
     }
   };
@@ -105,55 +114,69 @@ export default function TeacherClassesPage() {
 
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
+    const trimmedName = newStudent.name.trim();
+    const trimmedRoll = newStudent.roll_number.trim();
+    const trimmedPin = newStudent.pin.trim() || "1234";
+
+    if (!trimmedName) {
+      setActionMessage("Error: Student name is required.");
+      return;
+    }
+
+    // Client-side duplicate check
+    const isDuplicate = students.some(
+      (s) =>
+        (trimmedRoll && s.roll_number?.toLowerCase() === trimmedRoll.toLowerCase()) ||
+        (s.name?.toLowerCase() === trimmedName.toLowerCase())
+    );
+
+    if (isDuplicate) {
+      setActionMessage(`Error: Student with roll number "${trimmedRoll || trimmedName}" already exists in this classroom.`);
+      return;
+    }
+
     const effectiveClassId = selectedClassId || (classes.length > 0 ? classes[0].id : "");
-    const generatedUsername = newStudent.roll_number || (newStudent.name.toLowerCase().replace(/[^a-z0-9]/g, "") + "_" + Math.floor(1000 + Math.random() * 9000));
 
     try {
-      const added = await api.addStudent({
-        name: newStudent.name,
-        roll_number: newStudent.roll_number,
-        username: generatedUsername,
-        pin: newStudent.pin || "1234",
+      setIsSubmitting(true);
+      setActionMessage(null);
+      await api.addStudent({
+        name: trimmedName,
+        roll_number: trimmedRoll,
+        username: trimmedRoll.toLowerCase() || trimmedName.toLowerCase().replace(/[^a-z0-9]/g, "_"),
+        pin: trimmedPin,
         class_id: effectiveClassId,
       });
 
-      // Optimistically add to UI list with no default scores
-      setStudents((prev) => [
-        {
-          id: added?.id || `st-${Date.now()}`,
-          name: newStudent.name,
-          roll_number: newStudent.roll_number || generatedUsername,
-          pin: newStudent.pin || "1234",
-          level: 1,
-          streak: 0,
-          accuracy: null,
-          weak_skill: null,
-        },
-        ...prev,
-      ]);
-
-      setActionMessage(`Student "${newStudent.name}" added successfully! PIN: ${newStudent.pin || "1234"}`);
+      setActionMessage(`Student "${trimmedName}" added successfully! PIN: ${trimmedPin}`);
       setShowAddModal(false);
       setNewStudent({ name: "", roll_number: "", pin: "1234" });
       if (effectiveClassId) {
-        loadStudents(effectiveClassId);
+        await loadStudents(effectiveClassId);
       }
     } catch (err: any) {
-      // If server returned an error, still add optimistically for demo resilience if in dev
-      const mockNew = {
-        id: `st-${Date.now()}`,
-        name: newStudent.name,
-        roll_number: newStudent.roll_number || "R-NEW",
-        pin: newStudent.pin || "1234",
-        level: 1,
-        streak: 0,
-        accuracy: null,
-        weak_skill: null,
-      };
-      setStudents((prev) => [mockNew, ...prev]);
-      setActionMessage(`Student "${newStudent.name}" added successfully!`);
-      setShowAddModal(false);
-      setNewStudent({ name: "", roll_number: "", pin: "1234" });
+      setActionMessage(`Error: ${err.message || "Failed to add student. Please verify unique roll number."}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteStudent = async (studentId: string, studentName: string) => {
+    if (!window.confirm(`Are you sure you want to permanently delete student "${studentName}"?`)) {
+      return;
+    }
+
+    try {
+      setDeletingId(studentId);
+      await api.deleteStudent(studentId);
+      setStudents((prev) => prev.filter((s) => s.id !== studentId));
+      setActionMessage(`Student "${studentName}" was removed successfully.`);
+    } catch (err: any) {
+      setActionMessage(`Error deleting student: ${err.message || "Could not delete student."}`);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -192,6 +215,17 @@ export default function TeacherClassesPage() {
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (s.roll_number && s.roll_number.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm font-bold text-slate-600">Verifying educator credentials...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row" suppressHydrationWarning>
@@ -342,13 +376,30 @@ export default function TeacherClassesPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleOpenDiagnostic(st)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-blue-50 hover:text-blue-700 transition-colors"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Diagnostic</span>
-                      </button>
+                      <div className="inline-flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => handleOpenDiagnostic(st)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                          title="View diagnostic assessment"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Diagnostic</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteStudent(st.id, st.name)}
+                          disabled={deletingId === st.id}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-50"
+                          title="Delete student from classroom"
+                          aria-label={`Delete student ${st.name}`}
+                        >
+                          {deletingId === st.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-rose-600" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5" />
+                          )}
+                          <span className="hidden sm:inline">Delete</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -427,9 +478,11 @@ export default function TeacherClassesPage() {
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
                   >
-                    Add Student
+                    {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                    <span>{isSubmitting ? "Adding..." : "Add Student"}</span>
                   </button>
                 </div>
               </form>

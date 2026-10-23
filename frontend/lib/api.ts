@@ -110,8 +110,71 @@ export const clearStoredAuth = () => {
   localStorage.removeItem("learnbridge_user");
 };
 
-async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = getStoredToken();
+export async function refreshAccessToken(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+  const refreshToken = localStorage.getItem("learnbridge_refresh_token");
+  if (!refreshToken) return null;
+
+  try {
+    const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+
+    if (refreshRes.ok) {
+      const refreshData = await refreshRes.json();
+      if (refreshData.access_token) {
+        localStorage.setItem("learnbridge_token", refreshData.access_token);
+      }
+      if (refreshData.refresh_token) {
+        localStorage.setItem("learnbridge_refresh_token", refreshData.refresh_token);
+      }
+      return refreshData.access_token || null;
+    }
+  } catch {
+    // Network or server error during token refresh
+  }
+  return null;
+}
+
+async function apiFetch<T>(endpoint: string, options: RequestInit = {}, _isRetry = false): Promise<T> {
+  const isPublicEndpoint =
+    endpoint.startsWith("/auth/login") ||
+    endpoint.startsWith("/auth/student-login") ||
+    endpoint.startsWith("/auth/refresh") ||
+    endpoint.startsWith("/auth/class-roster") ||
+    endpoint === "/health";
+
+  let token = getStoredToken();
+
+  // Proactive check: refresh before request if access token is expired or within 30s of expiry
+  if (token) {
+    const payload = parseJwt(token);
+    const isExpired = payload?.exp && Date.now() >= (payload.exp - 30) * 1000;
+    if (isExpired) {
+      const refreshed = await refreshAccessToken();
+      if (refreshed) {
+        token = refreshed;
+      }
+    }
+  }
+
+  // Pre-emptive protection: prevent unauthenticated network calls for protected routes
+  if (!token && !isPublicEndpoint) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
+      token = refreshed;
+    } else {
+      clearStoredAuth();
+      if (typeof window !== "undefined") {
+        const isStudentRoute = endpoint.startsWith("/student") || endpoint.startsWith("/practice");
+        window.location.href = isStudentRoute ? "/student/login" : "/login";
+      }
+      throw new Error("Authentication required. Please log in.");
+    }
+  }
+
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
@@ -125,6 +188,22 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
     ...options,
     headers,
   });
+
+  // Reactive fallback: retry once if backend returns 401
+  if (res.status === 401 && !_isRetry && !isPublicEndpoint) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
+      return apiFetch<T>(endpoint, options, true);
+    }
+
+    // Refresh failed or no refresh token — clear auth and redirect to login
+    clearStoredAuth();
+    if (typeof window !== "undefined") {
+      const isStudentRoute = endpoint.startsWith("/student") || endpoint.startsWith("/practice");
+      window.location.href = isStudentRoute ? "/student/login" : "/login";
+    }
+    throw new Error("Session expired. Please log in again.");
+  }
 
   if (!res.ok) {
     const errorBody = await res.json().catch(() => ({ detail: res.statusText }));
@@ -168,6 +247,16 @@ export const api = {
     });
     setStoredAuth(data);
     return data;
+  },
+
+  async getClassRoster(classCode: string): Promise<Array<{ id: string; name: string; roll_number: string; username: string }>> {
+    try {
+      return await apiFetch<Array<{ id: string; name: string; roll_number: string; username: string }>>(
+        `/auth/class-roster/${encodeURIComponent(classCode)}`
+      );
+    } catch {
+      return [];
+    }
   },
 
   async getMe(): Promise<UserProfile> {
@@ -297,6 +386,12 @@ export const api = {
         ...data,
         username: rawUsername,
       }),
+    });
+  },
+
+  async deleteStudent(studentId: string) {
+    return apiFetch<{ success: boolean; message: string }>(`/teacher/students/${studentId}`, {
+      method: "DELETE",
     });
   },
 

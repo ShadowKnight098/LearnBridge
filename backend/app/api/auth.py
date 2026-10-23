@@ -96,7 +96,14 @@ async def student_login(credentials: StudentLoginRequest, db: AsyncSession = Dep
     # If student provided their identifier (roll number, username, or name), try to match that first
     if credentials.identifier and credentials.identifier.strip():
         ident = credentials.identifier.strip().lower()
-        candidates = [s for s in students if s.username.lower() == ident or s.name.lower() == ident]
+        candidates = [
+            s for s in students
+            if s.username.lower() == ident
+            or s.username.lower().split("_")[0] == ident
+            or s.name.lower() == ident
+            or s.name.lower().split(" ")[0] == ident
+            or ident in s.username.lower()
+        ]
         for s in candidates:
             if verify_password(credentials.pin, s.password_hash):
                 matched_student = s
@@ -111,7 +118,7 @@ async def student_login(credentials: StudentLoginRequest, db: AsyncSession = Dep
     if not matched_student:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect student PIN for this class"
+            detail="Incorrect student PIN or Roll Number for this class"
         )
 
     access_token = create_access_token(
@@ -133,6 +140,43 @@ async def student_login(credentials: StudentLoginRequest, db: AsyncSession = Dep
             class_id=classroom.id
         )
     )
+
+
+@router.get("/class-roster/{class_code}")
+async def get_class_roster(class_code: str, db: AsyncSession = Depends(get_db)):
+    """Public helper to retrieve student roster (name and roll number) for quick login selection."""
+    raw_code = class_code.strip().upper()
+    clean_code = raw_code.replace("-", "").replace(" ", "")
+
+    class_stmt = select(Class).where(
+        (Class.class_code == raw_code) | (Class.class_code == clean_code)
+    )
+    class_res = await db.execute(class_stmt)
+    classroom = class_res.scalar_one_or_none()
+
+    if not classroom and clean_code in ("CLS001", "CLS-001", "DEMO", "CLS3A"):
+        class_res = await db.execute(select(Class).where(Class.class_code == "CLS3A"))
+        classroom = class_res.scalar_one_or_none()
+
+    if not classroom:
+        return []
+
+    stmt = select(User).join(ClassStudent, ClassStudent.student_id == User.id).where(
+        ClassStudent.class_id == classroom.id,
+        User.is_active == True
+    )
+    result = await db.execute(stmt)
+    students = result.scalars().all()
+
+    return [
+        {
+            "id": s.id,
+            "name": s.name,
+            "roll_number": s.username.split("_")[0] if "_" in s.username else s.username,
+            "username": s.username,
+        }
+        for s in students
+    ]
 
 
 @router.post("/refresh", response_model=Token)

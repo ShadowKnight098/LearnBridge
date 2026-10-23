@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Users,
   UserPlus,
@@ -12,10 +13,11 @@ import {
   Search,
 } from "lucide-react";
 import { PortalHeader } from "../../../components/PortalHeader";
-import { api } from "../../../lib/api";
+import { api, getStoredUser, getStoredToken } from "../../../lib/api";
 import { useTranslation } from "../../../lib/i18n";
 
 export default function AdminTeachersPage() {
+  const router = useRouter();
   const { t } = useTranslation();
   const [teachers, setTeachers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,8 +26,14 @@ export default function AdminTeachersPage() {
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    const user = getStoredUser();
+    const token = getStoredToken();
+    if (!token || !user || user.role !== "admin") {
+      router.push("/login");
+      return;
+    }
     loadTeachers();
-  }, []);
+  }, [router]);
 
   const loadTeachers = async () => {
     try {

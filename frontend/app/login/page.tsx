@@ -76,13 +76,14 @@ export default function StaffLoginPage() {
       <div className="absolute bottom-12 right-1/4 w-80 h-80 bg-purple-200/40 rounded-full blur-3xl pointer-events-none -z-10" />
 
       {/* Top Header Navigation */}
-      <div className="max-w-lg w-full flex items-center justify-between mb-5 sm:mb-6">
+      <div className="max-w-lg w-full flex items-center justify-between gap-2 mb-4 sm:mb-6">
         <Link
           href="/"
-          className="group inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/90 backdrop-blur border border-purple-200/80 text-purple-950 font-bold hover:bg-white hover:border-purple-300 transition-all shadow-sm text-sm"
+          className="group inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl bg-white/90 backdrop-blur border border-purple-200/80 text-purple-950 font-bold hover:bg-white hover:border-purple-300 transition-all shadow-sm text-xs sm:text-sm"
         >
           <ArrowLeft className="w-4 h-4 text-purple-600 group-hover:-translate-x-0.5 transition-transform" />
-          <span>{t("common.back", "Back to Student Hub")}</span>
+          <span className="hidden xs:inline">{t("common.back", "Back to Student Hub")}</span>
+          <span className="xs:hidden">Back</span>
         </Link>
         <LanguageToggle minimal />
       </div>

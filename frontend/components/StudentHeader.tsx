@@ -47,12 +47,12 @@ export const StudentHeader: React.FC<StudentHeaderProps> = ({
           ) : (
             <Link
               href="/student/home"
-              className="group flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 rounded-xl px-1 py-0.5"
+              className="group flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 rounded-xl px-1 py-0.5"
             >
               <span className="text-2xl sm:text-3xl group-hover:rotate-6 group-hover:scale-105 active:scale-95 transition-transform duration-150 select-none">
                 🦉
               </span>
-              <span className="font-black text-lg sm:text-2xl tracking-tight bg-gradient-to-r from-purple-700 to-indigo-600 bg-clip-text text-transparent">
+              <span className="hidden sm:inline font-black text-lg sm:text-2xl tracking-tight bg-gradient-to-r from-purple-700 to-indigo-600 bg-clip-text text-transparent">
                 LearnBridge
               </span>
             </Link>

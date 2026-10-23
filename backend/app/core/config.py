@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite+aiosqlite:///./learnbridge.db"
     JWT_SECRET: str = "learnbridge-dev-secret-key-32-chars-long-min-2026"
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     LLM_PROVIDER: str = "gemini"
