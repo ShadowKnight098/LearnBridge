@@ -26,6 +26,10 @@ export default function QuestionReviewPage() {
   // Editing state
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
+  const [editExplanation, setEditExplanation] = useState("");
+  const [editOptions, setEditOptions] = useState<string[]>([]);
+  const [editCorrectIdx, setEditCorrectIdx] = useState<number>(0);
+  const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => {
     loadQuestions(statusFilter);
@@ -43,10 +47,12 @@ export default function QuestionReviewPage() {
           id: "q-mock-1",
           question_text: "Which of the following numbers comes immediately after 15?",
           options: ["14", "16", "17", "20"],
+          correct_index: 1,
           correct_answer_index: 1,
           difficulty: 1,
           language: "en",
           skill_name: "Counting 1-20",
+          explanation: "Counting sequentially, 16 comes directly after 15.",
           source_snippet: "Chapter 1, p.4 'Counting sequentially from 1 to 20...'",
           status: "draft",
         },
@@ -54,10 +60,12 @@ export default function QuestionReviewPage() {
           id: "q-mock-2",
           question_text: "5 + 3 = ?",
           options: ["7", "8", "9", "6"],
+          correct_index: 1,
           correct_answer_index: 1,
           difficulty: 1,
           language: "en",
           skill_name: "Single-Digit Addition",
+          explanation: "Adding 3 to 5 gives 8 (5 + 3 = 8).",
           source_snippet: "Chapter 2, p.12 'Addition combinations up to 10...'",
           status: "draft",
         },
@@ -65,16 +73,59 @@ export default function QuestionReviewPage() {
           id: "q-mock-3",
           question_text: "కింది వాటిలో ఏది సంఖ్య '7' యొక్క సరైన అక్షర రూపం?",
           options: ["ఐదు", "ఆరు", "ఏడు", "ఎనిమిది"],
+          correct_index: 2,
           correct_answer_index: 2,
           difficulty: 1,
           language: "te",
           skill_name: "Number Words",
+          explanation: "సంఖ్య 7 ని తెలుగులో 'ఏడు' అని పిలుస్తారు.",
           source_snippet: "గణితం భాగం 1, పేజీ 8 'తెలుగు సంఖ్యా పదాలు...'",
           status: "draft",
         },
       ]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const startEditing = (q: any) => {
+    setEditingId(q.id);
+    setEditText(q.question_text || q.text || "");
+    setEditExplanation(q.explanation || "");
+    setEditOptions(q.options && q.options.length ? [...q.options] : ["", "", "", ""]);
+    setEditCorrectIdx(q.correct_index ?? q.correct_answer_index ?? 0);
+  };
+
+  const handleSaveEdit = async (id: string) => {
+    try {
+      setSavingEdit(true);
+      await api.reviewQuestion(id, "edit", {
+        text: editText,
+        explanation: editExplanation,
+        options: editOptions,
+        correct_index: editCorrectIdx,
+      });
+      setQuestions((prev) =>
+        prev.map((q) =>
+          q.id === id
+            ? {
+                ...q,
+                text: editText,
+                question_text: editText,
+                explanation: editExplanation,
+                options: editOptions,
+                correct_index: editCorrectIdx,
+                correct_answer_index: editCorrectIdx,
+              }
+            : q
+        )
+      );
+      setEditingId(null);
+      setActionMessage("Question and explanation updated successfully!");
+    } catch (err: any) {
+      alert(err.message || "Failed to save question edits");
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -206,67 +257,140 @@ export default function QuestionReviewPage() {
                 </span>
               </div>
 
-              {/* Question Text */}
+              {/* Question Text & Interactive Editor */}
               {editingId === q.id ? (
-                <div>
-                  <textarea
-                    rows={2}
-                    value={editText}
-                    onChange={(e) => setEditText(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-blue-500 font-bold text-slate-900 text-base"
-                  />
-                  <div className="flex justify-end gap-2 mt-2">
+                <div className="space-y-4 p-4 rounded-xl bg-slate-50 border border-blue-300">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-700 mb-1">
+                      Question Text:
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      className="w-full p-3 rounded-xl border border-blue-500 font-bold text-slate-900 text-base outline-none bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-700 mb-1.5">
+                      Answer Options (Select the correct option):
+                    </label>
+                    <div className="space-y-2">
+                      {editOptions.map((opt, optIdx) => (
+                        <div key={optIdx} className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name={`correct-opt-${q.id}`}
+                            checked={editCorrectIdx === optIdx}
+                            onChange={() => setEditCorrectIdx(optIdx)}
+                            className="w-4 h-4 text-blue-600 cursor-pointer"
+                          />
+                          <span className="w-6 text-xs font-bold text-slate-500">
+                            {String.fromCharCode(65 + optIdx)}:
+                          </span>
+                          <input
+                            type="text"
+                            value={opt}
+                            onChange={(e) => {
+                              const updated = [...editOptions];
+                              updated[optIdx] = e.target.value;
+                              setEditOptions(updated);
+                            }}
+                            className={`flex-1 px-3 py-2 rounded-lg border text-sm font-semibold outline-none ${
+                              editCorrectIdx === optIdx
+                                ? "border-emerald-500 bg-emerald-50/50 text-emerald-950 font-bold"
+                                : "border-slate-300 bg-white text-slate-800"
+                            }`}
+                          />
+                          {editCorrectIdx === optIdx && (
+                            <span className="text-xs text-emerald-700 font-bold whitespace-nowrap">
+                              ✓ Correct
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-blue-900 mb-1 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                      Pedagogical Explanation & Rationale (Why this is correct):
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={editExplanation}
+                      onChange={(e) => setEditExplanation(e.target.value)}
+                      placeholder="Explain why this answer is correct and what the concept means..."
+                      className="w-full p-3 rounded-xl border border-blue-400 font-medium text-slate-900 text-sm outline-none bg-white"
+                    />
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2 border-t border-slate-200">
                     <button
                       onClick={() => setEditingId(null)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 bg-slate-100"
+                      disabled={savingEdit}
+                      className="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-100"
                     >
                       Cancel
                     </button>
                     <button
-                      onClick={() => {
-                        q.question_text = editText;
-                        setEditingId(null);
-                      }}
-                      className="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-blue-600"
+                      onClick={() => handleSaveEdit(q.id)}
+                      disabled={savingEdit}
+                      className="px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm"
                     >
-                      Save Text
+                      {savingEdit ? "Saving..." : "Save Changes"}
                     </button>
                   </div>
                 </div>
               ) : (
-                <h3 className="text-lg font-black text-slate-900 leading-snug">
-                  {q.question_text || q.text}
-                </h3>
-              )}
+                <>
+                  <h3 className="text-lg font-black text-slate-900 leading-snug">
+                    {q.question_text || q.text}
+                  </h3>
 
-              {/* Options & Correct Answer */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                {(q.options || []).map((opt: string, idx: number) => {
-                  const isCorrect = idx === q.correct_answer_index;
-                  return (
-                    <div
-                      key={idx}
-                      className={`p-3 rounded-xl border text-sm font-semibold flex items-center justify-between ${
-                        isCorrect
-                          ? "bg-emerald-50 border-emerald-400 text-emerald-950 font-bold"
-                          : "bg-slate-50 border-slate-200 text-slate-700"
-                      }`}
-                    >
-                      <span className="flex items-center gap-2">
-                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                          isCorrect ? "bg-emerald-600 text-white" : "border border-slate-300 text-slate-500"
-                        }`}>
-                          {String.fromCharCode(65 + idx)}
-                        </span>
-                        <span>{opt}</span>
-                      </span>
-                      {isCorrect && (
-                        <span className="text-xs text-emerald-700 font-bold">Correct Answer ✓</span>
-                      )}
+                  {/* Options & Correct Answer */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                    {(q.options || []).map((opt: string, idx: number) => {
+                      const isCorrect = idx === (q.correct_index ?? q.correct_answer_index);
+                      return (
+                        <div
+                          key={idx}
+                          className={`p-3 rounded-xl border text-sm font-semibold flex items-center justify-between ${
+                            isCorrect
+                              ? "bg-emerald-50 border-emerald-400 text-emerald-950 font-bold"
+                              : "bg-slate-50 border-slate-200 text-slate-700"
+                          }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
+                              isCorrect ? "bg-emerald-600 text-white" : "border border-slate-300 text-slate-500"
+                            }`}>
+                              {String.fromCharCode(65 + idx)}
+                            </span>
+                            <span>{opt}</span>
+                          </span>
+                          {isCorrect && (
+                            <span className="text-xs text-emerald-700 font-bold">Correct Answer ✓</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Pedagogical Explanation Box */}
+                  <div className="p-4 rounded-xl bg-blue-50/80 border border-blue-200 text-blue-950 space-y-1.5">
+                    <div className="flex items-center gap-2 text-xs font-bold text-blue-700 uppercase tracking-wide">
+                      <Sparkles className="w-4 h-4 text-blue-600" />
+                      <span>Explanation & Why this answer is correct:</span>
                     </div>
-                  );
-                })}
-              </div>
+                    <p className="text-sm font-semibold leading-relaxed text-blue-900">
+                      {q.explanation || "No explanation provided yet. Click 'Edit' below to add one."}
+                    </p>
+                  </div>
+                </>
+              )}
 
               {/* Curriculum Source Snippet */}
               {q.source_snippet && (
@@ -281,10 +405,7 @@ export default function QuestionReviewPage() {
               {/* Action Buttons */}
               <div className="flex flex-wrap items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
-                  onClick={() => {
-                    setEditingId(q.id);
-                    setEditText(q.question_text || q.text);
-                  }}
+                  onClick={() => startEditing(q)}
                   className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
                 >
                   <Edit3 className="w-3.5 h-3.5" />

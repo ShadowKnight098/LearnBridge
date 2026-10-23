@@ -244,7 +244,7 @@ export default function TeacherUploadPage() {
             </div>
           )}
 
-          {jobStatus && jobStatus.status === "completed" && (
+          {jobStatus && (jobStatus.status === "completed" || jobStatus.status === "done") && (
             <div className="bg-emerald-50 border border-emerald-300 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <CheckCircle className="w-8 h-8 text-emerald-600 flex-shrink-0" />
@@ -253,7 +253,7 @@ export default function TeacherUploadPage() {
                     Curriculum Questions Generated!
                   </h3>
                   <p className="text-xs text-emerald-800">
-                    Draft questions created. You can now approve, edit, or reject each question.
+                    {jobStatus.generated_questions || "Curriculum"} draft questions created with full explanations. You can now approve, edit, or reject each question.
                   </p>
                 </div>
               </div>
@@ -261,13 +261,13 @@ export default function TeacherUploadPage() {
                 href="/teacher/review"
                 className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-sm transition-all flex items-center gap-2 whitespace-nowrap"
               >
-                <span>Review Questions</span>
+                <span>Review Questions & Explanations</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           )}
 
-          {!processing && (!jobStatus || jobStatus.status !== "completed") && (
+          {!processing && (!jobStatus || (jobStatus.status !== "completed" && jobStatus.status !== "done")) && (
             <button
               onClick={handleProcessAndGenerate}
               disabled={!file}

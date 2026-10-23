@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class DocumentCreate(BaseModel):
@@ -87,12 +87,31 @@ class QuestionCreate(BaseModel):
 
 class QuestionUpdate(BaseModel):
     text: Optional[str] = None
+    question_text: Optional[str] = None
     options: Optional[List[str]] = None
     correct_index: Optional[int] = None
+    correct_answer_index: Optional[int] = None
     explanation: Optional[str] = None
     difficulty: Optional[int] = None
     skill_id: Optional[str] = None
     status: Optional[str] = None  # approved | rejected | draft
+    action: Optional[str] = None  # approve | reject | edit
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_fields(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "question_text" in data and "text" not in data:
+                data["text"] = data["question_text"]
+            if "correct_answer_index" in data and "correct_index" not in data:
+                data["correct_index"] = data["correct_answer_index"]
+            if "action" in data and not data.get("status"):
+                act = str(data["action"]).lower()
+                if act == "approve":
+                    data["status"] = "approved"
+                elif act == "reject":
+                    data["status"] = "rejected"
+        return data
 
 
 class QuestionDetailResponse(BaseModel):
@@ -106,13 +125,31 @@ class QuestionDetailResponse(BaseModel):
     difficulty: int
     type: str
     text: str
+    question_text: Optional[str] = None
     options: List[str]
     correct_index: int
+    correct_answer_index: Optional[int] = None
     explanation: Optional[str] = None
     source_snippet: Optional[str] = None
     status: str
     created_at: datetime
     approved_at: Optional[datetime] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def populate_aliases(cls, data: Any) -> Any:
+        if hasattr(data, "__dict__"):
+            data_dict = {c.name: getattr(data, c.name) for c in data.__table__.columns} if hasattr(data, "__table__") else data.__dict__.copy()
+        elif isinstance(data, dict):
+            data_dict = data.copy()
+        else:
+            return data
+
+        if "text" in data_dict and not data_dict.get("question_text"):
+            data_dict["question_text"] = data_dict["text"]
+        if "correct_index" in data_dict and data_dict.get("correct_answer_index") is None:
+            data_dict["correct_answer_index"] = data_dict["correct_index"]
+        return data_dict
 
 
 class AssignmentCreate(BaseModel):

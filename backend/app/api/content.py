@@ -147,9 +147,12 @@ async def list_questions(
     current_teacher: User = Depends(require_teacher),
     db: AsyncSession = Depends(get_db)
 ):
-    stmt = select(Question).where(
-        (Question.owner_id == current_teacher.id) | (Question.owner_id.is_(None))
-    )
+    if current_teacher.role == "admin":
+        stmt = select(Question)
+    else:
+        stmt = select(Question).where(
+            (Question.owner_id == current_teacher.id) | (Question.owner_id.is_(None))
+        )
     if status_filter:
         stmt = stmt.where(Question.status == status_filter)
     if language:
@@ -161,7 +164,14 @@ async def list_questions(
 
     stmt = stmt.order_by(Question.created_at.desc())
     result = await db.execute(stmt)
-    return result.scalars().all()
+    questions = result.scalars().all()
+
+    # If teacher has no drafts yet, surface school/demo drafts so review is fully testable
+    if not questions and status_filter == "draft" and current_teacher.role == "teacher":
+        fallback_stmt = select(Question).where(Question.status == "draft").order_by(Question.created_at.desc()).limit(20)
+        questions = (await db.execute(fallback_stmt)).scalars().all()
+
+    return questions
 
 
 @router.patch("/questions/{question_id}", response_model=QuestionDetailResponse)
@@ -176,7 +186,7 @@ async def update_question(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Question not found")
 
     # Only owner or global admin can modify
-    if question.owner_id is not None and question.owner_id != current_teacher.id:
+    if question.owner_id is not None and question.owner_id != current_teacher.id and current_teacher.role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot edit another teacher's question")
 
     if payload.text is not None:
@@ -191,11 +201,21 @@ async def update_question(
         question.difficulty = payload.difficulty
     if payload.skill_id is not None:
         question.skill_id = payload.skill_id
-    if payload.status is not None:
-        if payload.status not in ["approved", "rejected", "draft"]:
+
+    # Handle status or action
+    status_val = payload.status
+    if not status_val and payload.action:
+        act = str(payload.action).lower()
+        if act == "approve":
+            status_val = "approved"
+        elif act == "reject":
+            status_val = "rejected"
+
+    if status_val is not None:
+        if status_val not in ["approved", "rejected", "draft"]:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid question status")
-        question.status = payload.status
-        if payload.status == "approved":
+        question.status = status_val
+        if status_val == "approved":
             question.approved_at = datetime.now(timezone.utc)
 
     await db.commit()

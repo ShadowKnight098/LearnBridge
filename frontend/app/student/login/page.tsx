@@ -15,6 +15,7 @@ export default function StudentLoginPage() {
 
   const [classCode, setClassCode] = useState("CLS3A");
   const [pin, setPin] = useState("1234");
+  const [identifier, setIdentifier] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +33,7 @@ export default function StudentLoginPage() {
     try {
       setLoading(true);
       setError(null);
-      await api.loginStudent(classCode.trim(), pin.trim());
+      await api.loginStudent(classCode.trim(), pin.trim(), identifier.trim() || undefined);
       router.push("/student/home");
     } catch (err: any) {
       setError(err.message || "Could not find your student record. Please check with your teacher!");
@@ -111,6 +112,19 @@ export default function StudentLoginPage() {
                 required
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-1">
+              {t("student.identifier", "Username or Roll Number (Optional)")}
+            </label>
+            <input
+              type="text"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              placeholder="e.g. ananya_v or leave blank"
+              className="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 font-semibold text-slate-800 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all text-base"
+            />
           </div>
 
           <div>

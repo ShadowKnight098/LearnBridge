@@ -56,20 +56,6 @@ class Settings(BaseSettings):
         if url.startswith("postgresql+asyncpg:"):
             url = url.replace("postgresql+asyncpg:", "postgresql:")
 
-        supabase_match = re.search(r"@db\.([a-z0-9]+)\.supabase\.co(?::5432)?", url)
-        if supabase_match:
-            project_ref = supabase_match.group(1)
-            url = re.sub(
-                r"://([^:]+):",
-                lambda m: f"://{m.group(1)}.{project_ref}:" if f".{project_ref}" not in m.group(1) else f"://{m.group(1)}:",
-                url,
-                count=1
-            )
-            url = re.sub(
-                r"@db\.[a-z0-9]+\.supabase\.co(?::5432)?",
-                "@aws-0-ap-south-1.pooler.supabase.com:5432",
-                url
-            )
         return url
 
 

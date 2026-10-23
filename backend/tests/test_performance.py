@@ -65,7 +65,7 @@ async def test_nfr_01_next_question_turnaround_latency(bench_client):
     p95 = sorted_latencies[min(idx95, len(sorted_latencies) - 1)]
     mean_val = statistics.mean(latencies)
     from app.core.config import settings
-    target = 2000.0 if "supabase" in settings.DATABASE_URL else 300.0
+    target = 1000.0 if not settings.DATABASE_URL.startswith("sqlite") else 300.0
     print(f"\n[NFR-01 Benchmark] Next-Question Latency: Mean={mean_val:.2f}ms, P95={p95:.2f}ms (Target: <{target}ms)")
     assert p95 < target, f"P95 latency {p95:.2f}ms exceeded {target}ms threshold"
 

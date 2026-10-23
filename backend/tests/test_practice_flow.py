@@ -1,12 +1,12 @@
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
-from sqlalchemy import select
+from sqlalchemy import select, delete
 
 from app.main import app
 from app.core.security import create_access_token
 from app.core.database import AsyncSessionLocal
-from app.models import User, Question, StudentProfile
+from app.models import User, Question, StudentProfile, StudentItem
 
 
 @pytest_asyncio.fixture
@@ -78,9 +78,14 @@ async def test_complete_practice_session_flow(client, student_auth):
     items = shop_res.json()
     assert len(items) > 0
 
-    # Try buying 'theme_jungle' (costs 50) or 'hat_cap' (costs 30)
-    # Student has 25 coins -> buying 30 should fail with 400
-    fail_buy = await client.post("/student/me/shop/hat_cap/buy", headers=headers)
+    # Try buying 'theme_jungle' (costs 50) when student has insufficient coins (<50)
+    async with AsyncSessionLocal() as session:
+        prof = (await session.execute(select(StudentProfile).where(StudentProfile.student_id == student.id))).scalar_one()
+        prof.coins = 10
+        await session.execute(delete(StudentItem).where(StudentItem.student_id == student.id, StudentItem.item_id == "theme_jungle"))
+        await session.commit()
+
+    fail_buy = await client.post("/student/me/shop/theme_jungle/buy", headers=headers)
     assert fail_buy.status_code == 400
     assert "insufficient" in fail_buy.json()["detail"].lower()
 

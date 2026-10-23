@@ -18,7 +18,7 @@
   │  - Generation service ──────────► LLM (Gemini free tier / Ollama)
   └───────────────┬───────────────┘
                   ▼
-           PostgreSQL (local Docker / Supabase / Neon)
+           PostgreSQL (local Docker / Neon) or SQLite
 ```
 PDF text extraction and OCR run **in the teacher's browser** (pdf.js, tesseract.js); only extracted text chunks reach the server.
 
@@ -130,7 +130,7 @@ GET             /health
 
 ## 9. Deployment
 **Demo (recommended):** `docker compose up` runs frontend, backend and Postgres on one laptop.
-**Optional online:** frontend on Vercel/Netlify/Cloudflare Pages; backend on a free host (Render/Fly/Railway); DB on Supabase/Neon. Free-tier terms change, so verify them. Free backends may sleep; wake the app before a demo.
+**Optional online:** frontend on Vercel/Netlify/Cloudflare Pages; backend on a free host (Render/Fly/Railway); DB on Neon/PostgreSQL. Free-tier terms change, so verify them. Free backends may sleep; wake the app before a demo.
 
 ## 10. Configuration
 `.env` keys: `DATABASE_URL`, `JWT_SECRET`, `LLM_PROVIDER` (`gemini|ollama|none`), `LLM_API_KEY`, `LLM_MODEL`, `FRONTEND_ORIGIN`, `DAILY_SESSION_CAP`.

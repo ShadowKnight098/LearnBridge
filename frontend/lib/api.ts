@@ -342,10 +342,11 @@ export const api = {
       body: JSON.stringify({ chunks: formatted }),
     });
 
+    const normStatus = raw.status === "done" ? "completed" : raw.status;
     return {
       id: raw.id,
       job_id: raw.id || raw.job_id,
-      status: raw.status,
+      status: normStatus,
       total_chunks: raw.total_chunks,
       done_chunks: raw.done_chunks,
       progress: raw.progress ?? (raw.total_chunks > 0 ? Math.round((raw.done_chunks / raw.total_chunks) * 100) : 100),
@@ -356,10 +357,11 @@ export const api = {
 
   async getJobStatus(jobId: string) {
     const raw = await apiFetch<any>(`/teacher/jobs/${jobId}`);
+    const normStatus = raw.status === "done" ? "completed" : raw.status;
     return {
       id: raw.id,
       job_id: raw.id || raw.job_id,
-      status: raw.status,
+      status: normStatus,
       progress: raw.progress ?? (raw.total_chunks > 0 ? Math.round((raw.done_chunks / raw.total_chunks) * 100) : 100),
       generated_questions: raw.generated_questions ?? (raw.done_chunks * 3 || 6),
       error: raw.error,
@@ -371,9 +373,18 @@ export const api = {
   },
 
   async reviewQuestion(questionId: string, action: "approve" | "reject" | "edit", editData?: any) {
+    const statusMap: Record<string, string> = {
+      approve: "approved",
+      reject: "rejected",
+    };
+    const body: any = {
+      action,
+      status: statusMap[action] || editData?.status,
+      ...editData,
+    };
     return apiFetch<any>(`/teacher/questions/${questionId}`, {
       method: "PATCH",
-      body: JSON.stringify({ action, ...editData }),
+      body: JSON.stringify(body),
     });
   },
 

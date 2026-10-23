@@ -17,28 +17,11 @@ if sys.platform == "win32":
 connect_args = {}
 db_url = settings.DATABASE_URL
 
-# Auto-adapt PostgreSQL URI from Supabase/Postgres to async psycopg driver
+# Auto-adapt PostgreSQL URI to async psycopg driver if postgresql is used
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql+psycopg://", 1)
 elif db_url.startswith("postgresql://"):
     db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
-
-# Auto-detect Supabase direct IPv6 domain and adapt to IPv4 pooler for Render/IPv4 hosts
-import re
-supabase_match = re.search(r"@db\.([a-z0-9]+)\.supabase\.co(?::5432)?", db_url)
-if supabase_match:
-    project_ref = supabase_match.group(1)
-    db_url = re.sub(
-        r"://([^:]+):",
-        lambda m: f"://{m.group(1)}.{project_ref}:" if f".{project_ref}" not in m.group(1) else f"://{m.group(1)}:",
-        db_url,
-        count=1
-    )
-    db_url = re.sub(
-        r"@db\.[a-z0-9]+\.supabase\.co(?::5432)?",
-        "@aws-0-ap-south-1.pooler.supabase.com:5432",
-        db_url
-    )
 
 if db_url.startswith("sqlite"):
     connect_args["check_same_thread"] = False
@@ -50,13 +33,9 @@ engine = create_async_engine(
     connect_args=connect_args
 )
 
-# Enable foreign keys for SQLite
-if settings.DATABASE_URL.startswith("sqlite"):
-    @event.listens_for(engine.sync_engine, "connect")
-    def set_sqlite_pragma(dbapi_connection, connection_record):
-        cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.close()
+# SQLite configuration
+if db_url.startswith("sqlite"):
+    connect_args["check_same_thread"] = False
 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
