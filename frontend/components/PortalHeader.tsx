@@ -14,7 +14,7 @@ import {
   Building,
   Menu,
   X,
-  User as UserIcon,
+  ChevronRight,
 } from "lucide-react";
 import { LanguageToggle } from "./LanguageToggle";
 import { clearStoredAuth, getStoredUser, UserProfile } from "../lib/api";
@@ -30,30 +30,33 @@ export const PortalHeader: React.FC<PortalHeaderProps> = ({ role }) => {
   const { t } = useTranslation();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   // SSR hydration safety: load client-side user info after mount
   useEffect(() => {
     setUser(getStoredUser());
   }, []);
 
-  // Close mobile menu on route change
+  // Close mobile drawer on route change
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
 
-  // Close mobile menu on outside click
+  // Close mobile drawer on escape key or outside click
   useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMobileMenuOpen(false);
-      }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileMenuOpen(false);
     };
     if (mobileMenuOpen) {
-      document.addEventListener("mousedown", handleOutsideClick);
+      document.addEventListener("keydown", handleKeyDown);
+      // prevent body scroll when drawer is open
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
     }
     return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
     };
   }, [mobileMenuOpen]);
 
@@ -63,27 +66,27 @@ export const PortalHeader: React.FC<PortalHeaderProps> = ({ role }) => {
   };
 
   const teacherNav = [
-    { href: "/teacher/dashboard", label: t("teacher.dashboard", "Dashboard"), icon: GraduationCap },
-    { href: "/teacher/classes", label: t("teacher.students", "Classes & Roster"), icon: Users },
-    { href: "/teacher/upload", label: t("teacher.uploadPdf", "Upload Content"), icon: FileUp },
+    { href: "/teacher/dashboard", label: t("teacher.dashboard", "Teacher Dashboard"), icon: GraduationCap },
+    { href: "/teacher/classes", label: t("teacher.students", "Students & Roster"), icon: Users },
+    { href: "/teacher/upload", label: t("teacher.uploadPdf", "Upload Textbook / PDF"), icon: FileUp },
     { href: "/teacher/review", label: t("teacher.reviewQuestions", "Review Questions"), icon: CheckSquare },
-    { href: "/teacher/reports", label: t("teacher.reports", "Analytics"), icon: BarChart3 },
-    { href: "/teacher/alerts", label: t("teacher.alerts", "Alerts"), icon: Bell },
+    { href: "/teacher/reports", label: t("teacher.reports", "Class Heatmap & Reports"), icon: BarChart3 },
+    { href: "/teacher/alerts", label: t("teacher.alerts", "Alerts & Interventions"), icon: Bell },
   ];
 
   const adminNav = [
-    { href: "/admin/dashboard", label: t("admin.dashboard", "Overview"), icon: Building },
-    { href: "/admin/teachers", label: t("admin.teacherManagement", "Teachers"), icon: Users },
-    { href: "/admin/classes", label: t("admin.classManagement", "Classes"), icon: GraduationCap },
+    { href: "/admin/dashboard", label: t("admin.dashboard", "Institutional Overview"), icon: Building },
+    { href: "/admin/teachers", label: t("admin.teacherManagement", "Teacher Management"), icon: Users },
+    { href: "/admin/classes", label: t("admin.classManagement", "Class Allocations"), icon: GraduationCap },
     { href: "/admin/reports", label: t("admin.schoolComparison", "School Reports"), icon: BarChart3 },
   ];
 
   const navItems = role === "admin" ? adminNav : teacherNav;
   const isTeacher = role === "teacher";
 
-  // Derive user initials or icon
+  // Derive user initials
   const getInitials = (name?: string) => {
-    if (!name) return isTeacher ? "T" : "A";
+    if (!name) return isTeacher ? "TL" : "AD";
     const parts = name.trim().split(" ");
     if (parts.length >= 2) {
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
@@ -91,210 +94,231 @@ export const PortalHeader: React.FC<PortalHeaderProps> = ({ role }) => {
     return name.slice(0, 2).toUpperCase();
   };
 
-  return (
-    <header className="sticky top-0 z-50 w-full bg-white/85 backdrop-blur-xl border-b border-slate-200/80 shadow-[0_1px_3px_0_rgba(0,0,0,0.03)] transition-all">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6">
-        <div className="flex items-center justify-between h-16 gap-3">
-          {/* Left: Brand Logo & Role Badge */}
-          <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0">
-            <Link
-              href={role === "admin" ? "/admin/dashboard" : "/teacher/dashboard"}
-              className="group flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-xl px-1 py-0.5"
-            >
-              <span className="text-2xl group-hover:scale-110 group-active:scale-95 transition-transform duration-150 inline-block">
-                🦉
-              </span>
-              <span className="font-extrabold text-lg sm:text-xl text-slate-900 tracking-tight">
-                LearnBridge
-              </span>
-            </Link>
+  const navLinksList = (
+    <nav className="flex flex-col gap-1.5 px-3 py-2">
+      <div className="px-3 pb-2 pt-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+        {isTeacher ? "Teacher Navigation" : "Administrator"}
+      </div>
+      {navItems.map((item) => {
+        const Icon = item.icon;
+        const isActive =
+          pathname === item.href ||
+          (item.href !== "/teacher/dashboard" &&
+            item.href !== "/admin/dashboard" &&
+            pathname.startsWith(item.href));
 
-            {/* Portal Badge with pulse indicator */}
-            <div
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider transition-colors ${
-                isTeacher
-                  ? "bg-blue-50 text-blue-700 border border-blue-200/80"
-                  : "bg-purple-50 text-purple-700 border border-purple-200/80"
-              }`}
-            >
-              <span className="relative flex h-2 w-2">
-                <span
-                  className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                    isTeacher ? "bg-blue-400" : "bg-purple-400"
-                  }`}
-                />
-                <span
-                  className={`relative inline-flex rounded-full h-2 w-2 ${
-                    isTeacher ? "bg-blue-500" : "bg-purple-600"
-                  }`}
-                />
-              </span>
-              <span className="hidden xs:inline">
-                {isTeacher ? "Teacher" : "Admin"}
-              </span>
-            </div>
-          </div>
-
-          {/* Center: Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 active:scale-[0.97] select-none ${
-                    isActive
-                      ? isTeacher
-                        ? "bg-blue-50 text-blue-700 ring-1 ring-blue-500/20 shadow-xs"
-                        : "bg-purple-50 text-purple-700 ring-1 ring-purple-500/20 shadow-xs"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70"
-                  }`}
-                >
-                  <Icon
-                    className={`w-4 h-4 transition-colors ${
-                      isActive
-                        ? isTeacher
-                          ? "text-blue-600"
-                          : "text-purple-600"
-                        : "text-slate-400"
-                    }`}
-                  />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Right Controls: Language, User Profile, Logout & Mobile Toggle */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            <LanguageToggle minimal />
-
-            {/* User Chip (Desktop) */}
-            {user && (
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={() => setMobileMenuOpen(false)}
+            className={`group relative flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold transition-all duration-150 select-none ${
+              isActive
+                ? isTeacher
+                  ? "bg-blue-50 text-blue-700 ring-1 ring-blue-500/20 shadow-xs font-bold"
+                  : "bg-purple-50 text-purple-700 ring-1 ring-purple-500/20 shadow-xs font-bold"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 active:scale-[0.98]"
+            }`}
+          >
+            <div className="flex items-center gap-3 min-w-0">
               <div
-                className="hidden sm:flex items-center gap-2 pl-2 pr-2.5 py-1 rounded-xl bg-slate-50/80 border border-slate-200/60"
-                title={user.email}
+                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors flex-shrink-0 ${
+                  isActive
+                    ? isTeacher
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "bg-purple-600 text-white shadow-xs"
+                    : "bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700"
+                }`}
               >
-                <div
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs text-white shadow-xs ${
-                    isTeacher
-                      ? "bg-gradient-to-tr from-blue-600 to-indigo-600"
-                      : "bg-gradient-to-tr from-purple-600 to-indigo-600"
-                  }`}
-                >
-                  {getInitials(user.name)}
-                </div>
-                <div className="hidden xl:flex flex-col text-left">
-                  <span className="text-xs font-bold text-slate-800 leading-tight max-w-[120px] truncate">
-                    {user.name || (isTeacher ? "Teacher" : "Admin")}
-                  </span>
-                  <span className="text-[10px] text-slate-500 font-medium leading-none capitalize">
-                    {user.role}
-                  </span>
-                </div>
+                <Icon className="w-4 h-4" />
               </div>
+              <span className="truncate">{item.label}</span>
+            </div>
+            {isActive && (
+              <ChevronRight
+                className={`w-4 h-4 flex-shrink-0 ${
+                  isTeacher ? "text-blue-500" : "text-purple-500"
+                }`}
+              />
             )}
+          </Link>
+        );
+      })}
+    </nav>
+  );
 
-            {/* Logout Button (Desktop) */}
-            <button
-              onClick={handleLogout}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50/80 border border-transparent hover:border-rose-100 active:scale-95 transition-all duration-150"
-              title="Logout"
-              aria-label="Logout"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden md:inline">{t("common.logout", "Logout")}</span>
-            </button>
+  const sidebarFooter = (
+    <div className="p-4 border-t border-slate-200/80 bg-slate-50/70 space-y-3">
+      {/* Language Switcher */}
+      <div className="flex items-center justify-between px-1">
+        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+          Language
+        </span>
+        <LanguageToggle minimal />
+      </div>
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden inline-flex items-center justify-center w-9 h-9 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/80 active:scale-95 transition-all duration-150"
-              aria-label="Toggle navigation menu"
-              aria-expanded={mobileMenuOpen}
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
+      {/* User Info Card */}
+      <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-xs">
+        <div
+          className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm text-white shadow-xs flex-shrink-0 ${
+            isTeacher
+              ? "bg-gradient-to-tr from-blue-600 to-indigo-600"
+              : "bg-gradient-to-tr from-purple-600 to-indigo-600"
+          }`}
+        >
+          {getInitials(user?.name)}
+        </div>
+        <div className="flex flex-col min-w-0 flex-1">
+          <span className="text-xs font-bold text-slate-800 leading-tight truncate">
+            {user?.name || (isTeacher ? "Teacher Lakshmi" : "Administrator")}
+          </span>
+          <span className="text-[10px] text-slate-500 font-medium leading-none capitalize mt-0.5">
+            {user?.role || (isTeacher ? "teacher" : "admin")}
+          </span>
         </div>
       </div>
 
-      {/* Mobile Dropdown Menu Drawer */}
-      {mobileMenuOpen && (
-        <div
-          ref={menuRef}
-          className="lg:hidden border-t border-slate-200/90 bg-white/95 backdrop-blur-xl px-4 py-3 shadow-lg animate-in slide-in-from-top-2 duration-150"
-        >
-          {/* User Profile summary on mobile */}
-          {user && (
-            <div className="flex items-center gap-3 pb-3 mb-2 border-b border-slate-100">
-              <div
-                className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm text-white shadow-xs ${
-                  isTeacher
-                    ? "bg-gradient-to-tr from-blue-600 to-indigo-600"
-                    : "bg-gradient-to-tr from-purple-600 to-indigo-600"
+      {/* Logout Button */}
+      <button
+        onClick={handleLogout}
+        className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200/80 hover:border-rose-200 transition-all duration-150 active:scale-98"
+      >
+        <LogOut className="w-3.5 h-3.5" />
+        <span>{t("common.logout", "Logout")}</span>
+      </button>
+    </div>
+  );
+
+  return (
+    <>
+      {/* 1. DESKTOP LEFT SIDEBAR */}
+      <aside className="hidden lg:flex lg:flex-col lg:w-64 xl:w-72 lg:flex-shrink-0 lg:sticky lg:top-0 lg:h-screen lg:overflow-hidden border-r border-slate-200/80 bg-white z-30 select-none shadow-[1px_0_4px_0_rgba(0,0,0,0.02)]">
+        {/* Brand Header */}
+        <div className="p-5 border-b border-slate-200/80 flex items-center justify-between gap-3 bg-white">
+          <Link
+            href={isTeacher ? "/teacher/dashboard" : "/admin/dashboard"}
+            className="group flex items-center gap-2.5 focus:outline-none"
+          >
+            <span className="text-2xl group-hover:scale-110 group-active:scale-95 transition-transform duration-150 inline-block">
+              🦉
+            </span>
+            <div className="flex flex-col">
+              <span className="font-extrabold text-lg text-slate-900 tracking-tight leading-none">
+                LearnBridge
+              </span>
+              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mt-0.5">
+                {isTeacher ? "Educator Suite" : "Admin Console"}
+              </span>
+            </div>
+          </Link>
+
+          {/* Role Pill */}
+          <div
+            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+              isTeacher
+                ? "bg-blue-50 text-blue-700 border border-blue-200"
+                : "bg-purple-50 text-purple-700 border border-purple-200"
+            }`}
+          >
+            <span className="relative flex h-1.5 w-1.5">
+              <span
+                className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                  isTeacher ? "bg-blue-400" : "bg-purple-400"
                 }`}
-              >
-                {getInitials(user.name)}
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-bold text-slate-800">
-                  {user.name || (isTeacher ? "Teacher" : "Admin")}
-                </span>
-                <span className="text-xs text-slate-500 font-medium capitalize">
-                  {user.email || user.role}
-                </span>
-              </div>
+              />
+              <span
+                className={`relative inline-flex rounded-full h-1.5 w-1.5 ${
+                  isTeacher ? "bg-blue-500" : "bg-purple-600"
+                }`}
+              />
+            </span>
+            <span>{isTeacher ? "Teacher" : "Admin"}</span>
+          </div>
+        </div>
+
+        {/* Scrollable Navigation Menu */}
+        <div className="flex-1 overflow-y-auto py-2">{navLinksList}</div>
+
+        {/* Sidebar Footer */}
+        {sidebarFooter}
+      </aside>
+
+      {/* 2. MOBILE TOPBAR (< lg) */}
+      <header className="lg:hidden sticky top-0 z-40 w-full bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-xs px-4 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="inline-flex items-center justify-center w-10 h-10 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/80 active:scale-95 transition-all"
+            aria-label="Open navigation menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <Link
+            href={isTeacher ? "/teacher/dashboard" : "/admin/dashboard"}
+            className="flex items-center gap-2"
+          >
+            <span className="text-2xl">🦉</span>
+            <span className="font-extrabold text-lg text-slate-900 tracking-tight">
+              LearnBridge
+            </span>
+          </Link>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <LanguageToggle minimal />
+          {user && (
+            <div
+              className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs text-white shadow-xs ${
+                isTeacher
+                  ? "bg-gradient-to-tr from-blue-600 to-indigo-600"
+                  : "bg-gradient-to-tr from-purple-600 to-indigo-600"
+              }`}
+            >
+              {getInitials(user.name)}
             </div>
           )}
+        </div>
+      </header>
 
-          {/* Navigation Items List */}
-          <nav className="flex flex-col gap-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 active:scale-[0.98] ${
-                    isActive
-                      ? isTeacher
-                        ? "bg-blue-50 text-blue-700 ring-1 ring-blue-500/20 shadow-xs"
-                        : "bg-purple-50 text-purple-700 ring-1 ring-purple-500/20 shadow-xs"
-                      : "text-slate-700 hover:bg-slate-100/80 active:bg-slate-100"
-                  }`}
-                >
-                  <Icon
-                    className={`w-5 h-5 ${
-                      isActive
-                        ? isTeacher
-                          ? "text-blue-600"
-                          : "text-purple-600"
-                        : "text-slate-400"
-                    }`}
-                  />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
+      {/* 3. MOBILE SLIDE-OUT LEFT DRAWER */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          {/* Backdrop overlay */}
+          <div
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+            onClick={() => setMobileMenuOpen(false)}
+          />
 
-          {/* Mobile Logout Button */}
-          <div className="pt-2 mt-2 border-t border-slate-100">
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-rose-600 hover:bg-rose-50 active:bg-rose-100 transition-colors"
-            >
-              <LogOut className="w-5 h-5 text-rose-500" />
-              <span>{t("common.logout", "Logout")}</span>
-            </button>
+          {/* Drawer sheet from the left */}
+          <div
+            ref={drawerRef}
+            className="relative w-72 max-w-[85vw] bg-white h-full shadow-2xl flex flex-col z-50 animate-in slide-in-from-left duration-200"
+          >
+            {/* Drawer Header */}
+            <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🦉</span>
+                <span className="font-extrabold text-lg text-slate-900">
+                  LearnBridge
+                </span>
+              </div>
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+                aria-label="Close menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Navigation in Drawer */}
+            <div className="flex-1 overflow-y-auto py-2">{navLinksList}</div>
+
+            {/* Drawer Footer */}
+            {sidebarFooter}
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 };

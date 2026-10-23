@@ -1,7 +1,7 @@
 # Graph Report - LearnBridge  (2026-10-23)
 
 ## Corpus Check
-- 92 files · ~66,347 words
+- 92 files · ~66,522 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 10 file(s) not represented in the graph (top: (none) 6, .example 1, .pptx 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `62173ce0`
+- Built from commit: `3c0efbc9`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 

@@ -73,10 +73,11 @@ export default function AdminTeachersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col" suppressHydrationWarning>
+    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row" suppressHydrationWarning>
       <PortalHeader role="admin" />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      <div className="flex-1 min-w-0 flex flex-col">
+        <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">
@@ -236,5 +237,6 @@ export default function AdminTeachersPage() {
         )}
       </main>
     </div>
-  );
+  </div>
+);
 }

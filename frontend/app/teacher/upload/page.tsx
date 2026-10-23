@@ -135,10 +135,11 @@ export default function TeacherUploadPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col" suppressHydrationWarning>
+    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row" suppressHydrationWarning>
       <PortalHeader role="teacher" />
 
-      <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      <div className="flex-1 min-w-0 flex flex-col">
+        <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
             {t("teacher.uploadTitle", "Generate Practice from Curriculum")}
@@ -307,5 +308,6 @@ export default function TeacherUploadPage() {
         </div>
       </main>
     </div>
-  );
+  </div>
+);
 }

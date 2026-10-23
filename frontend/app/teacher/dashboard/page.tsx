@@ -51,10 +51,11 @@ export default function TeacherDashboardPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col" suppressHydrationWarning>
+    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row" suppressHydrationWarning>
       <PortalHeader role="teacher" />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      <div className="flex-1 min-w-0 flex flex-col">
+        <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         {/* Welcome Banner */}
         <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 rounded-2xl p-6 sm:p-8 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
@@ -223,5 +224,6 @@ export default function TeacherDashboardPage() {
         </div>
       </main>
     </div>
-  );
+  </div>
+);
 }

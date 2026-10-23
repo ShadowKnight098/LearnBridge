@@ -46,10 +46,11 @@ export default function AdminDashboardPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col" suppressHydrationWarning>
+    <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row" suppressHydrationWarning>
       <PortalHeader role="admin" />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      <div className="flex-1 min-w-0 flex flex-col">
+        <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         <div>
           <span className="text-xs uppercase font-extrabold tracking-wider bg-purple-100 text-purple-700 px-3 py-1 rounded-full">
             Institutional Administration
@@ -183,5 +184,6 @@ export default function AdminDashboardPage() {
         </div>
       </main>
     </div>
-  );
+  </div>
+);
 }
