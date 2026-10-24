@@ -97,6 +97,7 @@ CREATE TABLE questions (
   options       JSONB NOT NULL,                 -- ["a","b","c","d"]
   correct_index SMALLINT NOT NULL,
   explanation   TEXT,
+  hint          TEXT,
   source_snippet TEXT,
   status        question_status NOT NULL DEFAULT 'draft',
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),

@@ -22,6 +22,7 @@ class QuestionItemResponse(BaseModel):
     type: str
     text: str
     options: List[str]
+    hint: Optional[str] = None
     # correct_index and explanation are NOT leaked during question display!
 
 

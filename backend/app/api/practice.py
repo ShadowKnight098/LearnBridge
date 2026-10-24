@@ -202,6 +202,40 @@ async def ensure_starter_content(db: AsyncSession):
         await db.rollback()
 
 
+
+def get_effective_hint(q: Any, lang: str = "en") -> str:
+    """
+    Returns an encouraging, pedagogical hint for the learner.
+    If question has a custom hint, returns it.
+    Otherwise produces an intuitive fallback hint based on skill, question content, and language.
+    """
+    if isinstance(q, dict):
+        custom_hint = q.get("hint")
+        q_text = q.get("text", "")
+        skill_id = q.get("skill_id", "")
+    else:
+        custom_hint = getattr(q, "hint", None)
+        q_text = getattr(q, "text", "")
+        skill_id = getattr(q, "skill_id", "")
+
+    if custom_hint and str(custom_hint).strip():
+        return str(custom_hint).strip()
+
+    is_num = "NUM" in str(skill_id) or any(char.isdigit() for char in q_text) or any(sym in q_text for sym in ["+", "-", "*", "/", "=", "⭐"])
+    if lang == "te":
+        if is_num:
+            return "ఒక్కొక్కటిగా జాగ్రత్తగా లెక్కించండి లేదా సంఖ్యలను పదులు మరియు ఒకట్లుగా విభజించి చూడండి."
+        return "సరైన సమాధానం కోసం ప్రశ్నలోని ముఖ్యమైన పదాలను పాఠ్యాంశంతో సరిపోల్చండి."
+    elif lang == "hi":
+        if is_num:
+            return "एक-एक करके ध्यान से गिनें या संख्याओं को दहाई और इकाई में विभाजित करके देखें।"
+        return "सही उत्तर खोजने के लिए प्रश्न के मुख्य शब्दों को पाठ के साथ मिलाकर देखें।"
+    else:
+        if is_num:
+            return "Count carefully step-by-step or break down the numbers to find the answer."
+        return "Look closely at the key words in the question and compare each choice."
+
+
 @router.post("/sessions", response_model=SessionStartResponse)
 async def start_practice_session(
     payload: PracticeSessionStart,
@@ -311,7 +345,8 @@ async def start_practice_session(
             language=first_q["language"],
             type=first_q["type"],
             text=first_q["text"],
-            options=first_q["options"]
+            options=first_q["options"],
+            hint=get_effective_hint(first_q, lang)
         )
 
     return SessionStartResponse(
@@ -561,7 +596,8 @@ async def submit_answer(
                 language=next_q["language"],
                 type=next_q["type"],
                 text=next_q["text"],
-                options=next_q["options"]
+                options=next_q["options"],
+                hint=get_effective_hint(next_q, lang)
             )
 
     await db.commit()
@@ -641,7 +677,8 @@ async def get_question_in_language(
             language=current_q.language,
             type=current_q.type,
             text=current_q.text,
-            options=current_q.options
+            options=current_q.options,
+            hint=get_effective_hint(current_q, target_lang)
         )
 
     # 2. Match by concept_id in target_lang
@@ -683,5 +720,6 @@ async def get_question_in_language(
         language=target_q.language,
         type=target_q.type,
         text=target_q.text,
-        options=target_q.options
+        options=target_q.options,
+        hint=get_effective_hint(target_q, target_lang)
     )

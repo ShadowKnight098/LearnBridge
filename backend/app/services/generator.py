@@ -36,9 +36,10 @@ Mandatory Rules:
 1. Output language MUST be strictly '{language}'.
 2. Every question must have exactly 4 options.
 3. 'correct_index' must be 0, 1, 2, or 3, pointing to the exact correct answer.
-4. 'explanation' MUST be comprehensive and clearly explain in '{language}' WHY the correct answer is right and what the concept means, referencing the lesson.
-5. 'source_snippet' must be the exact sentence from the text supporting the answer.
-6. Output MUST be ONLY a valid JSON array of question objects matching this schema:
+4. 'hint' MUST be a gentle, friendly clue in '{language}' that guides young students without revealing the answer directly.
+5. 'explanation' MUST be comprehensive and clearly explain in '{language}' WHY the correct answer is right and what the concept means, referencing the lesson.
+6. 'source_snippet' must be the exact sentence from the text supporting the answer.
+7. Output MUST be ONLY a valid JSON array of question objects matching this schema:
 [
   {{
     "skill_id": "NUM-01",
@@ -49,6 +50,7 @@ Mandatory Rules:
     "text": "Question text in {language}",
     "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
     "correct_index": 0,
+    "hint": "Gentle clue in {language} to guide the learner",
     "explanation": "Clear pedagogical explanation in {language} explaining why this answer is correct and what it means.",
     "source_snippet": "Direct snippet from text"
   }}
@@ -120,6 +122,15 @@ def validate_generated_questions(
         diff = int(item.get("difficulty", 1))
         diff = max(1, min(3, diff))
 
+        hint_val = item.get("hint")
+        if not hint_val or not str(hint_val).strip():
+            if expected_language == "te":
+                hint_val = "ప్రశ్నను జాగ్రత్తగా చదవండి మరియు పాఠ్యభాగంలోని ముఖ్య సమాచారాన్ని గుర్తుచేసుకోండి."
+            elif expected_language == "hi":
+                hint_val = "प्रश्न को ध्यान से पढ़ें और पाठ के मुख्य बिंदु को याद करने का प्रयास करें।"
+            else:
+                hint_val = "Read the question carefully and think about the key facts in the lesson."
+
         validated.append({
             "skill_id": str(item.get("skill_id", default_skill_id)),
             "difficulty": diff,
@@ -129,6 +140,7 @@ def validate_generated_questions(
             "text": text,
             "options": cleaned_options,
             "correct_index": correct_idx,
+            "hint": str(hint_val).strip(),
             "explanation": item.get("explanation", "Refer to the chapter text."),
             "source_snippet": item.get("source_snippet")
         })
@@ -178,6 +190,7 @@ def generate_deterministic_fallback_questions(
                 "ఇది పై అంశానికి సంబంధించినది కాదు."
             ]
             explanation = f"సరైన సమాధానం: '{correct}'. వివరణ: పాఠ్యాంశంలోని వాక్యం '{sent}' ప్రకారం ఈ సమాధానం పూర్తిగా సరైనది."
+            hint = "పాఠ్యభాగంలోని ముఖ్య వాక్యాన్ని పరిశీలించి ఎంపికలతో సరిపోల్చండి."
         elif language == "hi":
             q_text = f"पाठ के आधार पर सही उत्तर चुनें: निम्नलिखित में से कौन सा कथन सही है?"
             correct = sent
@@ -187,6 +200,7 @@ def generate_deterministic_fallback_questions(
                 "यह दिए गए विषय से संबंधित नहीं है।"
             ]
             explanation = f"सही उत्तर: '{correct}'। व्याख्या: पाठ्यांश में स्पष्ट उल्लेख है: '{sent}'। इसलिए यह विकल्प सही है।"
+            hint = "पाठ्यांश के दिए गए वाक्य पर ध्यान दें और सही विकल्प से मिलान करें।"
         else:
             # English
             is_match = re.search(r'([A-Za-z\s]{3,30})\s+(is|are|has|have|means|was|were)\s+([A-Za-z0-9\s,]{4,60})', sent, re.IGNORECASE)
@@ -221,6 +235,13 @@ def generate_deterministic_fallback_questions(
                 ]
                 explanation = f"Correct Answer: {correct}. Explanation: The text directly confirms: '{sent}'. The other options contradict or are not found in this curriculum passage."
 
+            if num_match:
+                hint = "Look at the numbers mentioned in the lesson and recount carefully."
+            elif is_match:
+                hint = f"Focus on what the passage says about '{subject_term}'."
+            else:
+                hint = "Review the sentence from the lesson carefully to find the matching fact."
+
         options = [correct] + distractors[:3]
         # Deterministic shift based on sentence length to vary correct_index
         shift = len(sent) % 4
@@ -236,6 +257,7 @@ def generate_deterministic_fallback_questions(
             "text": q_text,
             "options": options,
             "correct_index": correct_idx,
+            "hint": hint,
             "explanation": explanation,
             "source_snippet": sent[:120]
         })
@@ -350,6 +372,7 @@ async def process_document_generation(document_id: str, job_id: str, db_factory)
                         options=q_dict["options"],
                         correct_index=q_dict["correct_index"],
                         explanation=q_dict.get("explanation"),
+                        hint=q_dict.get("hint"),
                         source_snippet=q_dict.get("source_snippet") or chunk.text[:120],
                         status="draft"  # PRD FR-9: Saved as draft until approved!
                     )

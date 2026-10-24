@@ -52,7 +52,11 @@
     "buy": "Buy",
     "insufficientCoins": "Need more coins!",
     "locked": "Locked",
-    "stars": "Stars"
+    "stars": "Stars",
+    "needHint": "Need a Hint? 💡",
+    "hideHint": "Hide Hint",
+    "hintTitle": "Helpful Clue 💡",
+    "hintSpeech": "Here is a hint to guide you"
   },
   "teacher": {
     "dashboard": "Teacher Dashboard",
@@ -82,7 +86,9 @@
     "exportCsv": "Export CSV Report",
     "addStudent": "Add Student",
     "importCsv": "Import Roster CSV",
-    "noAlerts": "All students are progressing smoothly! No active alerts."
+    "noAlerts": "All students are progressing smoothly! No active alerts.",
+    "hint": "Student Hint / Guiding Clue",
+    "hintPlaceholder": "A gentle guiding clue for students..."
   },
   "admin": {
     "dashboard": "School Administrator Overview",

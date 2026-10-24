@@ -175,6 +175,7 @@ async def seed():
                         options=q["options"],
                         correct_index=q["correct_index"],
                         explanation=q.get("explanation"),
+                        hint=q.get("hint"),
                         status="approved"
                     ))
 

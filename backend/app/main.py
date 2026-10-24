@@ -113,3 +113,20 @@ async def root():
         "docs": "/docs",
         "health": "/health"
     }
+
+
+@app.on_event("startup")
+async def ensure_db_migrations():
+    from app.core.database import engine
+    from sqlalchemy import text
+    try:
+        async with engine.begin() as conn:
+            if engine.dialect.name == "postgresql":
+                await conn.execute(text("ALTER TABLE questions ADD COLUMN IF NOT EXISTS hint TEXT;"))
+            elif engine.dialect.name == "sqlite":
+                res = await conn.execute(text("PRAGMA table_info(questions);"))
+                columns = [row[1] for row in res.fetchall()]
+                if columns and "hint" not in columns:
+                    await conn.execute(text("ALTER TABLE questions ADD COLUMN hint TEXT;"))
+    except Exception:
+        pass

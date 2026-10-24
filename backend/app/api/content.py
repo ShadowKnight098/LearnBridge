@@ -206,6 +206,8 @@ async def update_question(
         question.correct_index = payload.correct_index
     if payload.explanation is not None:
         question.explanation = payload.explanation
+    if payload.hint is not None:
+        question.hint = payload.hint
     if payload.difficulty is not None:
         question.difficulty = payload.difficulty
     if payload.skill_id is not None:
