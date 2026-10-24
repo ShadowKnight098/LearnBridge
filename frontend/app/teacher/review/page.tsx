@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   CheckSquare,
+  Lightbulb,
   CheckCircle,
   XCircle,
   Edit3,
@@ -30,6 +31,7 @@ export default function QuestionReviewPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [editExplanation, setEditExplanation] = useState("");
+  const [editHint, setEditHint] = useState("");
   const [editOptions, setEditOptions] = useState<string[]>([]);
   const [editCorrectIdx, setEditCorrectIdx] = useState<number>(0);
   const [savingEdit, setSavingEdit] = useState(false);
@@ -102,6 +104,7 @@ export default function QuestionReviewPage() {
     setEditingId(q.id);
     setEditText(q.question_text || q.text || "");
     setEditExplanation(q.explanation || "");
+    setEditHint(q.hint || "");
     setEditOptions(q.options && q.options.length ? [...q.options] : ["", "", "", ""]);
     setEditCorrectIdx(q.correct_index ?? q.correct_answer_index ?? 0);
   };
@@ -112,6 +115,7 @@ export default function QuestionReviewPage() {
       await api.reviewQuestion(id, "edit", {
         text: editText,
         explanation: editExplanation,
+        hint: editHint,
         options: editOptions,
         correct_index: editCorrectIdx,
       });
@@ -123,6 +127,7 @@ export default function QuestionReviewPage() {
                 text: editText,
                 question_text: editText,
                 explanation: editExplanation,
+                hint: editHint,
                 options: editOptions,
                 correct_index: editCorrectIdx,
                 correct_answer_index: editCorrectIdx,
@@ -341,11 +346,25 @@ export default function QuestionReviewPage() {
                       Pedagogical Explanation & Rationale (Why this is correct):
                     </label>
                     <textarea
-                      rows={3}
+                      rows={2}
                       value={editExplanation}
                       onChange={(e) => setEditExplanation(e.target.value)}
                       placeholder="Explain why this answer is correct and what the concept means..."
                       className="w-full p-3 rounded-xl border border-blue-400 font-medium text-slate-900 text-sm outline-none bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-amber-900 mb-1 flex items-center gap-1.5">
+                      <Lightbulb className="w-3.5 h-3.5 text-amber-600" />
+                      Student Hint / Guiding Clue (Helps students when stuck):
+                    </label>
+                    <input
+                      type="text"
+                      value={editHint}
+                      onChange={(e) => setEditHint(e.target.value)}
+                      placeholder="A gentle guiding clue for students..."
+                      className="w-full px-3 py-2.5 rounded-xl border border-amber-400 font-medium text-slate-900 text-sm outline-none bg-white"
                     />
                   </div>
 
@@ -409,6 +428,17 @@ export default function QuestionReviewPage() {
                     </div>
                     <p className="text-sm font-semibold leading-relaxed text-blue-900">
                       {q.explanation || "No explanation provided yet. Click 'Edit' below to add one."}
+                    </p>
+                  </div>
+
+                  {/* Student Hint Clue Box */}
+                  <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-950 space-y-1">
+                    <div className="flex items-center gap-2 text-xs font-bold text-amber-800 uppercase tracking-wide">
+                      <Lightbulb className="w-4 h-4 text-amber-600" />
+                      <span>Student Hint / Guiding Clue:</span>
+                    </div>
+                    <p className="text-sm font-semibold leading-relaxed text-amber-900">
+                      {q.hint || "No custom hint set yet. Students will see the automated domain clue."}
                     </p>
                   </div>
                 </>

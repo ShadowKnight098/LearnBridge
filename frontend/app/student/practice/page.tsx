@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import confetti from "canvas-confetti";
 import {
   Volume2,
+  Lightbulb,
   CheckCircle,
   HelpCircle,
   Sparkles,
@@ -29,16 +30,19 @@ const DEMO_MULTILINGUAL_QUESTIONS: Record<string, Record<string, { text: string;
     en: {
       text: "How many stars are here: ⭐ ⭐ ⭐ ⭐ ⭐ ?",
       options: ["3", "4", "5", "6"],
+      hint: "Count the stars one by one with your finger.",
       explanation: "Counting the stars one by one gives 5 stars.",
     },
     te: {
       text: "ఇక్కడ ఎన్ని నక్షత్రాలు ఉన్నాయి: ⭐ ⭐ ⭐ ⭐ ⭐ ?",
       options: ["3", "4", "5", "6"],
+      hint: "ప్రతి నక్షత్రాన్ని మీ వేలితో తాకుతూ ఒకటి తర్వాత ఒకటి లెక్కించండి.",
       explanation: "ఒక్కొక్కటిగా లెక్కిస్తే మొత్తం 5 నక్షత్రాలు ఉన్నాయి.",
     },
     hi: {
       text: "यहाँ कितने तारे हैं: ⭐ ⭐ ⭐ ⭐ ⭐ ?",
       options: ["3", "4", "5", "6"],
+      hint: "अपनी उंगली से प्रत्येक तारे को छूते हुए एक-एक करके गिनें।",
       explanation: "एक-एक करके गिनने पर कुल 5 तारे हैं।",
     },
   },
@@ -46,16 +50,19 @@ const DEMO_MULTILINGUAL_QUESTIONS: Record<string, Record<string, { text: string;
     en: {
       text: "What is 4 + 3?",
       options: ["6", "7", "8", "9"],
+      hint: "Start from 4 and count forward 3 steps: 5, 6, 7.",
       explanation: "4 plus 3 equals 7.",
     },
     te: {
       text: "4 + 3 ఎంత?",
       options: ["6", "7", "8", "9"],
+      hint: "4 నుండి ప్రారంభించి 3 అడుగులు ముందుకు లెక్కించండి: 5, 6, 7.",
       explanation: "4 కు 3 కలిపితే 7 వస్తుంది.",
     },
     hi: {
       text: "4 + 3 कितना होता है?",
       options: ["6", "7", "8", "9"],
+      hint: "4 से शुरू करें और 3 कदम आगे गिनें: 5, 6, 7।",
       explanation: "4 में 3 जोड़ने पर 7 प्राप्त होता है।",
     },
   },
@@ -63,16 +70,19 @@ const DEMO_MULTILINGUAL_QUESTIONS: Record<string, Record<string, { text: string;
     en: {
       text: "Which number is greater: 47 or 74?",
       options: ["47", "74", "Both are equal", "Cannot be determined"],
+      hint: "Look at the tens place first: 4 tens versus 7 tens.",
       explanation: "74 has 7 tens, while 47 has only 4 tens. Therefore, 74 is greater.",
     },
     te: {
       text: "వీటిలో ఏ సంఖ్య పెద్దది: 47 లేదా 74?",
       options: ["47", "74", "రెండూ సమానం", "చెప్పలేము"],
+      hint: "మొదట పదుల స్థానాన్ని చూడండి: 4 పదులు లేదా 7 పదులు.",
       explanation: "74 లో 7 పదులు ఉన్నాయి, కాబట్టి 74 పెద్దది.",
     },
     hi: {
       text: "इनमें से कौन सी संख्या बड़ी है: 47 या 74?",
       options: ["47", "74", "दोनों बराबर हैं", "कहा नहीं जा सकता"],
+      hint: "पहले दहाई के स्थान को देखें: 4 दहाई या 7 दहाई।",
       explanation: "74 में 7 दहाई हैं, इसलिए 74 बड़ा है।",
     },
   },
@@ -80,16 +90,19 @@ const DEMO_MULTILINGUAL_QUESTIONS: Record<string, Record<string, { text: string;
     en: {
       text: "What is 15 + 23?",
       options: ["36", "38", "48", "37"],
+      hint: "Add units first (5 + 3 = 8), then add tens (1 + 2 = 3).",
       explanation: "15 plus 23 equals 38.",
     },
     te: {
       text: "15 + 23 ఎంత?",
       options: ["36", "38", "48", "37"],
+      hint: "ముందుగా ఒకట్లను కలపండి (5 + 3 = 8), తర్వాత పదులను కలపండి (1 + 2 = 3).",
       explanation: "15 కు 23 కలిపితే 38 వస్తుంది.",
     },
     hi: {
       text: "15 + 23 कितना होता है?",
       options: ["36", "38", "48", "37"],
+      hint: "पहले इकाई को जोड़ें (5 + 3 = 8), फिर दहाई को जोड़ें (1 + 2 = 3)।",
       explanation: "15 में 23 जोड़ने पर 38 प्राप्त होता है।",
     },
   },
@@ -107,6 +120,7 @@ export default function PracticePlayerPage() {
   
   // Interaction state
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [showHint, setShowHint] = useState(false);
   const [isAnswered, setIsAnswered] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{
@@ -169,6 +183,7 @@ export default function PracticePlayerPage() {
         ...prev,
         text: demo[newLang].text,
         options: demo[newLang].options,
+        hint: demo[newLang].hint,
         explanation: demo[newLang].explanation,
       }));
       return;
@@ -182,6 +197,7 @@ export default function PracticePlayerPage() {
           id: switched.id,
           text: switched.text,
           options: switched.options,
+          hint: switched.hint,
         }));
       }
     } catch {
@@ -207,6 +223,7 @@ export default function PracticePlayerPage() {
         setTotalQuestions(res.total_questions || 10);
         setIsAnswered(false);
         setSelectedOption(null);
+        setShowHint(false);
         setFeedback(null);
         setSessionCompleted(false);
         setDailyCapReached(false);
@@ -337,6 +354,7 @@ export default function PracticePlayerPage() {
       setCurrentQuestion(nextQ);
       setQuestionNumber((prev) => prev + 1);
       setSelectedOption(null);
+      setShowHint(false);
       setIsAnswered(false);
       setFeedback(null);
       (window as any).__next_q = null;
@@ -504,6 +522,14 @@ export default function PracticePlayerPage() {
     currentQuestion.text ||
     "Solve the following question:";
   const options = currentQuestion.options || [];
+  const hintText =
+    currentQuestion.hint ||
+    (DEMO_MULTILINGUAL_QUESTIONS[currentQuestion.id]?.[language]?.hint) ||
+    (language === "te"
+      ? "ప్రశ్నను జాగ్రత్తగా చదివి ఎంపికలను పరిశీలించండి."
+      : language === "hi"
+      ? "प्रश्न को ध्यान से पढ़ें और प्रत्येक विकल्प की तुलना करें।"
+      : "Read the question carefully and compare each option.");
 
   return (
     <div className="min-h-screen bg-student-bg flex flex-col justify-between">
@@ -540,10 +566,45 @@ export default function PracticePlayerPage() {
                 <h2 className="text-2xl sm:text-3xl font-black text-slate-900 leading-snug">
                   {questionText}
                 </h2>
-                <AudioButton text={questionText} size="md" />
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setShowHint((prev) => !prev)}
+                    title={showHint ? t("student.hideHint", "Hide Hint") : t("student.needHint", "Need a Hint? 💡")}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-extrabold transition-all shadow-sm ${
+                      showHint
+                        ? "bg-amber-400 text-amber-950 border border-amber-500 scale-105"
+                        : "bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300"
+                    }`}
+                  >
+                    <Lightbulb className={`w-4 h-4 ${showHint ? "text-amber-950 fill-amber-300" : "text-amber-700"}`} />
+                    <span>{showHint ? t("student.hideHint", "Hide Hint") : t("student.needHint", "Hint 💡")}</span>
+                  </button>
+                  <AudioButton text={questionText} size="md" />
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Child-Friendly Hint Box */}
+          {showHint && (
+            <div className="my-3 p-4 rounded-2xl bg-gradient-to-r from-amber-50 via-yellow-50 to-amber-100/70 border-2 border-amber-300 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-2.5">
+                  <span className="text-2xl mt-0.5">💡</span>
+                  <div>
+                    <h4 className="text-xs font-black uppercase tracking-wider text-amber-900 mb-0.5">
+                      {t("student.hintTitle", "Helpful Clue 💡")}
+                    </h4>
+                    <p className="text-base font-bold text-amber-950 leading-relaxed">
+                      {hintText}
+                    </p>
+                  </div>
+                </div>
+                <AudioButton text={hintText} size="sm" />
+              </div>
+            </div>
+          )}
 
           {/* Answer Options Grid (Touch target >= 56px) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-6">

@@ -17,7 +17,7 @@ Read the provided source text chunk and generate 3 to 5 multiple-choice question
 
 ## Mandatory Constraints
 1. **Strict Language Compliance:**
-   - The question text, all options, and the explanation MUST be written entirely in the target language: `{language}`.
+   - The question text, all options, explanation, and hint MUST be written entirely in the target language: `{language}`.
    - Do NOT mix English and Hindi/Telugu (no Hinglish / Tenglish) unless teaching English as a second language.
    - Use clean, standard Unicode Indic script for Hindi (Devanagari) and Telugu.
 2. **Grounding & Accuracy:**
@@ -29,11 +29,13 @@ Read the provided source text chunk and generate 3 to 5 multiple-choice question
    - Exactly 4 options per question.
    - Exactly ONE unambiguously correct option.
    - Plausible, fair distractors.
-4. **Difficulty Levels:**
+4. **Pedagogical Hint (Student Support):**
+   - Provide a gentle, warm `hint` in `{language}` to guide struggling learners so they do not get stuck, without spoiling the answer directly.
+5. **Difficulty Levels:**
    - `1` (Easy): Direct factual recall or basic counting/identification.
    - `2` (Medium): Simple comprehension, single-step arithmetic, or direct application.
    - `3` (Hard): Two-step reasoning, inference, or comparing/combining details from the chunk.
-5. **Privacy:**
+6. **Privacy:**
    - Never generate or reference any personally identifiable student or teacher information.
 
 ## Required JSON Schema
@@ -50,6 +52,7 @@ Return ONLY a valid JSON array of question objects, with no markdown backticks, 
     "text": "ప్రశ్న ఇక్కడ ఉంటుంది?",
     "options": ["ఎంపిక 1", "ఎంపిక 2", "ఎంపిక 3", "ఎంపిక 4"],
     "correct_index": 0,
+    "hint": "సమాధానాన్ని కనుగొనడానికి ఒక చిన్న సహాయక సూచన.",
     "explanation": "సరైన సమాధానం ఎందుకు సరైనదో ఇక్కడ వివరణ ఉంటుంది.",
     "source_snippet": "టెక్స్ట్‌లోని సంబంధిత వాక్యం."
   }

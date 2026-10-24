@@ -7,10 +7,16 @@
     "type": "mcq",
     "language": "en",
     "text": "How many stars are here: ⭐ ⭐ ⭐ ⭐ ⭐ ?",
-    "options": ["3", "4", "5", "6"],
+    "options": [
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
     "correct_index": 2,
     "explanation": "Counting the stars one by one gives 5 stars.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "Point your finger and count the stars one by one."
   },
   {
     "concept_id": "num01_count_stars",
@@ -20,10 +26,16 @@
     "type": "mcq",
     "language": "te",
     "text": "ఇక్కడ ఎన్ని నక్షత్రాలు ఉన్నాయి: ⭐ ⭐ ⭐ ⭐ ⭐ ?",
-    "options": ["3", "4", "5", "6"],
+    "options": [
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
     "correct_index": 2,
     "explanation": "ఒక్కొక్కటిగా లెక్కిస్తే మొత్తం 5 నక్షత్రాలు ఉన్నాయి.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "ప్రతి నక్షత్రాన్ని మీ వేలితో తాకుతూ ఒకటి తర్వాత ఒకటి లెక్కించండి."
   },
   {
     "concept_id": "num01_count_stars",
@@ -33,10 +45,16 @@
     "type": "mcq",
     "language": "hi",
     "text": "यहाँ कितने तारे हैं: ⭐ ⭐ ⭐ ⭐ ⭐ ?",
-    "options": ["3", "4", "5", "6"],
+    "options": [
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
     "correct_index": 2,
     "explanation": "एक-एक करके गिनने पर कुल 5 तारे हैं।",
-    "status": "approved"
+    "status": "approved",
+    "hint": "अपनी उंगली से प्रत्येक तारे को छूते हुए एक-एक करके गिनें।"
   },
   {
     "concept_id": "num01_compare_numbers",
@@ -46,10 +64,16 @@
     "type": "mcq",
     "language": "en",
     "text": "Which number is greater: 47 or 74?",
-    "options": ["47", "74", "Both are equal", "Cannot be determined"],
+    "options": [
+      "47",
+      "74",
+      "Both are equal",
+      "Cannot be determined"
+    ],
     "correct_index": 1,
     "explanation": "74 has 7 tens, while 47 has only 4 tens. Therefore, 74 is greater.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "Look at the tens digit first: 4 tens versus 7 tens."
   },
   {
     "concept_id": "num01_compare_numbers",
@@ -59,10 +83,16 @@
     "type": "mcq",
     "language": "te",
     "text": "వీటిలో ఏ సంఖ్య పెద్దది: 47 లేదా 74?",
-    "options": ["47", "74", "రెండూ సమానం", "చెప్పలేము"],
+    "options": [
+      "47",
+      "74",
+      "రెండూ సమానం",
+      "చెప్పలేము"
+    ],
     "correct_index": 1,
     "explanation": "74 లో 7 పదులు ఉన్నాయి, 47 లో 4 పదులు మాత్రమే ఉన్నాయి. కాబట్టి 74 పెద్దది.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "మొదట పదుల స్థానంలోని అంకెలను పోల్చండి (4 మరియు 7)."
   },
   {
     "concept_id": "num01_compare_numbers",
@@ -72,10 +102,16 @@
     "type": "mcq",
     "language": "hi",
     "text": "इनमें से कौन सी संख्या बड़ी है: 47 या 74?",
-    "options": ["47", "74", "दोनों बराबर हैं", "कहा नहीं जा सकता"],
+    "options": [
+      "47",
+      "74",
+      "दोनों बराबर हैं",
+      "कहा नहीं जा सकता"
+    ],
     "correct_index": 1,
     "explanation": "74 में 7 दहाई हैं जबकि 47 में 4 दहाई हैं। इसलिए 74 बड़ा है।",
-    "status": "approved"
+    "status": "approved",
+    "hint": "पहले दहाई के स्थान वाले अंकों की तुलना करें (4 और 7)।"
   },
   {
     "concept_id": "num01_place_value",
@@ -85,10 +121,16 @@
     "type": "mcq",
     "language": "en",
     "text": "In the number 85, what is the place value of 8?",
-    "options": ["8", "80", "50", "85"],
+    "options": [
+      "8",
+      "80",
+      "50",
+      "85"
+    ],
     "correct_index": 1,
     "explanation": "8 is in the tens place, so its value is 8 x 10 = 80.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "Which place is 8 located in? Units or tens?"
   },
   {
     "concept_id": "num01_place_value",
@@ -98,10 +140,16 @@
     "type": "mcq",
     "language": "te",
     "text": "85 సంఖ్యలో, 8 యొక్క స్థాన విలువ ఎంత?",
-    "options": ["8", "80", "50", "85"],
+    "options": [
+      "8",
+      "80",
+      "50",
+      "85"
+    ],
     "correct_index": 1,
     "explanation": "8 పదుల స్థానంలో ఉంది, కాబట్టి దాని విలువ 8 x 10 = 80.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "సంఖ్యలో 8 ఏ స్థానంలో ఉంది? ఒకట్ల స్థానమా లేక పదుల స్థానమా?"
   },
   {
     "concept_id": "num01_place_value",
@@ -111,10 +159,16 @@
     "type": "mcq",
     "language": "hi",
     "text": "संख्या 85 में, 8 का स्थानीय मान क्या है?",
-    "options": ["8", "80", "50", "85"],
+    "options": [
+      "8",
+      "80",
+      "50",
+      "85"
+    ],
     "correct_index": 1,
     "explanation": "8 दहाई के स्थान पर है, इसलिए इसका मान 8 x 10 = 80 है।",
-    "status": "approved"
+    "status": "approved",
+    "hint": "संख्या में 8 किस स्थान पर है? इकाई या दहाई?"
   },
   {
     "concept_id": "num02_add_single",
@@ -124,10 +178,16 @@
     "type": "mcq",
     "language": "en",
     "text": "What is 4 + 3?",
-    "options": ["6", "7", "8", "9"],
+    "options": [
+      "6",
+      "7",
+      "8",
+      "9"
+    ],
     "correct_index": 1,
     "explanation": "4 plus 3 equals 7.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "Start from the larger number and count forward."
   },
   {
     "concept_id": "num02_add_single",
@@ -137,10 +197,16 @@
     "type": "mcq",
     "language": "te",
     "text": "4 + 3 మొత్తం ఎంత?",
-    "options": ["6", "7", "8", "9"],
+    "options": [
+      "6",
+      "7",
+      "8",
+      "9"
+    ],
     "correct_index": 1,
     "explanation": "4 కి 3 కలిపితే 7 వస్తుంది.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "పెద్ద సంఖ్య నుండి ప్రారంభించి చిన్న సంఖ్యను కలపండి."
   },
   {
     "concept_id": "num02_add_single",
@@ -150,10 +216,16 @@
     "type": "mcq",
     "language": "hi",
     "text": "4 + 3 कितना होता है?",
-    "options": ["6", "7", "8", "9"],
+    "options": [
+      "6",
+      "7",
+      "8",
+      "9"
+    ],
     "correct_index": 1,
     "explanation": "4 में 3 जोड़ने पर 7 आता है।",
-    "status": "approved"
+    "status": "approved",
+    "hint": "बड़ी संख्या से शुरू करें और छोटी संख्या को आगे जोड़ें।"
   },
   {
     "concept_id": "num02_add_double_nocarry",
@@ -163,10 +235,16 @@
     "type": "mcq",
     "language": "en",
     "text": "What is 23 + 14?",
-    "options": ["35", "37", "47", "39"],
+    "options": [
+      "35",
+      "37",
+      "47",
+      "39"
+    ],
     "correct_index": 1,
     "explanation": "Add ones: 3 + 4 = 7. Add tens: 2 + 1 = 3. Result is 37.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "Start from the larger number and count forward."
   },
   {
     "concept_id": "num02_add_double_nocarry",
@@ -176,10 +254,16 @@
     "type": "mcq",
     "language": "te",
     "text": "23 + 14 మొత్తం ఎంత?",
-    "options": ["35", "37", "47", "39"],
+    "options": [
+      "35",
+      "37",
+      "47",
+      "39"
+    ],
     "correct_index": 1,
     "explanation": "ఒకట్ల స్థానం: 3 + 4 = 7. పదుల స్థానం: 2 + 1 = 3. మొత్తం 37.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "పెద్ద సంఖ్య నుండి ప్రారంభించి చిన్న సంఖ్యను కలపండి."
   },
   {
     "concept_id": "num02_add_double_nocarry",
@@ -189,10 +273,16 @@
     "type": "mcq",
     "language": "hi",
     "text": "23 + 14 कितना होता है?",
-    "options": ["35", "37", "47", "39"],
+    "options": [
+      "35",
+      "37",
+      "47",
+      "39"
+    ],
     "correct_index": 1,
     "explanation": "इकाई: 3 + 4 = 7. दहाई: 2 + 1 = 3. कुल उत्तर 37 है।",
-    "status": "approved"
+    "status": "approved",
+    "hint": "बड़ी संख्या से शुरू करें और छोटी संख्या को आगे जोड़ें।"
   },
   {
     "concept_id": "num02_add_double_carry",
@@ -202,10 +292,16 @@
     "type": "mcq",
     "language": "en",
     "text": "What is 38 + 27?",
-    "options": ["55", "63", "65", "57"],
+    "options": [
+      "55",
+      "63",
+      "65",
+      "57"
+    ],
     "correct_index": 2,
     "explanation": "8 + 7 = 15 (5 down, 1 carry). 1 + 3 + 2 = 6. Result is 65.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "Start from the larger number and count forward."
   },
   {
     "concept_id": "num02_add_double_carry",
@@ -215,10 +311,16 @@
     "type": "mcq",
     "language": "te",
     "text": "38 + 27 మొత్తం ఎంత?",
-    "options": ["55", "63", "65", "57"],
+    "options": [
+      "55",
+      "63",
+      "65",
+      "57"
+    ],
     "correct_index": 2,
     "explanation": "8 + 7 = 15 (5 ఉంచి, 1 దస్తా). 1 + 3 + 2 = 6. మొత్తం 65.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "పెద్ద సంఖ్య నుండి ప్రారంభించి చిన్న సంఖ్యను కలపండి."
   },
   {
     "concept_id": "num02_add_double_carry",
@@ -228,10 +330,16 @@
     "type": "mcq",
     "language": "hi",
     "text": "38 + 27 कितना होता है?",
-    "options": ["55", "63", "65", "57"],
+    "options": [
+      "55",
+      "63",
+      "65",
+      "57"
+    ],
     "correct_index": 2,
     "explanation": "8 + 7 = 15 (5 लिखकर 1 हासिल). 1 + 3 + 2 = 6. कुल उत्तर 65 है।",
-    "status": "approved"
+    "status": "approved",
+    "hint": "बड़ी संख्या से शुरू करें और छोटी संख्या को आगे जोड़ें।"
   },
   {
     "concept_id": "num03_sub_single",
@@ -241,10 +349,16 @@
     "type": "mcq",
     "language": "en",
     "text": "What is 9 - 4?",
-    "options": ["4", "5", "6", "3"],
+    "options": [
+      "4",
+      "5",
+      "6",
+      "3"
+    ],
     "correct_index": 1,
     "explanation": "Subtracting 4 from 9 gives 5.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "Read the question carefully and check each option."
   },
   {
     "concept_id": "num03_sub_single",
@@ -254,10 +368,16 @@
     "type": "mcq",
     "language": "te",
     "text": "9 - 4 తీసివేస్తే ఎంత?",
-    "options": ["4", "5", "6", "3"],
+    "options": [
+      "4",
+      "5",
+      "6",
+      "3"
+    ],
     "correct_index": 1,
     "explanation": "9 నుండి 4 తీసివేస్తే 5 వస్తుంది.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "ప్రశ్నను జాగ్రత్తగా చదివి ఎంపికలను పరిశీలించండి."
   },
   {
     "concept_id": "num03_sub_single",
@@ -267,10 +387,16 @@
     "type": "mcq",
     "language": "hi",
     "text": "9 - 4 कितना होता है?",
-    "options": ["4", "5", "6", "3"],
+    "options": [
+      "4",
+      "5",
+      "6",
+      "3"
+    ],
     "correct_index": 1,
     "explanation": "9 में से 4 घटाने पर 5 आता है।",
-    "status": "approved"
+    "status": "approved",
+    "hint": "प्रश्न को ध्यान से पढ़ें और विकल्पों की तुलना करें।"
   },
   {
     "concept_id": "num04_mult_table5",
@@ -280,10 +406,16 @@
     "type": "mcq",
     "language": "en",
     "text": "What is 5 × 4?",
-    "options": ["15", "20", "25", "30"],
+    "options": [
+      "15",
+      "20",
+      "25",
+      "30"
+    ],
     "correct_index": 1,
     "explanation": "5 multiplied by 4 equals 20.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "Read the question carefully and check each option."
   },
   {
     "concept_id": "num04_mult_table5",
@@ -293,10 +425,16 @@
     "type": "mcq",
     "language": "te",
     "text": "5 × 4 విలువ ఎంత?",
-    "options": ["15", "20", "25", "30"],
+    "options": [
+      "15",
+      "20",
+      "25",
+      "30"
+    ],
     "correct_index": 1,
     "explanation": "5 ని 4 సార్లు గుణిస్తే 20 వస్తుంది.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "ప్రశ్నను జాగ్రత్తగా చదివి ఎంపికలను పరిశీలించండి."
   },
   {
     "concept_id": "num04_mult_table5",
@@ -306,10 +444,16 @@
     "type": "mcq",
     "language": "hi",
     "text": "5 × 4 कितना होता है?",
-    "options": ["15", "20", "25", "30"],
+    "options": [
+      "15",
+      "20",
+      "25",
+      "30"
+    ],
     "correct_index": 1,
     "explanation": "5 को 4 से गुणा करने पर 20 आता है।",
-    "status": "approved"
+    "status": "approved",
+    "hint": "प्रश्न को ध्यान से पढ़ें और विकल्पों की तुलना करें।"
   },
   {
     "concept_id": "num06_frac_half",
@@ -319,10 +463,16 @@
     "type": "mcq",
     "language": "en",
     "text": "If a whole roti is cut into 2 equal parts, what is one part called?",
-    "options": ["One-fourth (1/4)", "One-half (1/2)", "Three-fourths (3/4)", "Whole (1)"],
+    "options": [
+      "One-fourth (1/4)",
+      "One-half (1/2)",
+      "Three-fourths (3/4)",
+      "Whole (1)"
+    ],
     "correct_index": 1,
     "explanation": "One out of two equal parts is represented as 1/2 (half).",
-    "status": "approved"
+    "status": "approved",
+    "hint": "Remember how 1 part out of 2 equal halves is written as a fraction."
   },
   {
     "concept_id": "num06_frac_half",
@@ -332,10 +482,16 @@
     "type": "mcq",
     "language": "te",
     "text": "ఒక రొట్టెను 2 సమాన భాగాలుగా చేస్తే, ఒక భాగాన్ని ఏమంటారు?",
-    "options": ["పావు భాగం (1/4)", "సగం భాగం (1/2)", "ముప్పావు భాగం (3/4)", "పూర్తి రొట్టె (1)"],
+    "options": [
+      "పావు భాగం (1/4)",
+      "సగం భాగం (1/2)",
+      "ముప్పావు భాగం (3/4)",
+      "పూర్తి రొట్టె (1)"
+    ],
     "correct_index": 1,
     "explanation": "రెండు సమాన భాగాలలో ఒక భాగాన్ని సగం (1/2) అంటారు.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "మొత్తం 2 సమాన భాగాలలో ఒక భాగాన్ని భిన్నంలో ఎలా రాస్తారో గుర్తుచేసుకోండి."
   },
   {
     "concept_id": "num06_frac_half",
@@ -345,10 +501,16 @@
     "type": "mcq",
     "language": "hi",
     "text": "यदि एक रोटी को 2 बराबर भागों में बांटा जाए, तो एक भाग को क्या कहेंगे?",
-    "options": ["एक-चौथाई (1/4)", "आधा (1/2)", "तीन-चौथाई (3/4)", "पूरी रोटी (1)"],
+    "options": [
+      "एक-चौथाई (1/4)",
+      "आधा (1/2)",
+      "तीन-चौथाई (3/4)",
+      "पूरी रोटी (1)"
+    ],
     "correct_index": 1,
     "explanation": "दो बराबर हिस्सों में से एक हिस्से को आधा (1/2) कहते हैं।",
-    "status": "approved"
+    "status": "approved",
+    "hint": "कुल 2 बराबर भागों में से 1 भाग को भिन्न में कैसे लिखते हैं, याद करें।"
   },
   {
     "concept_id": "lit01_vowel_recognition",
@@ -358,10 +520,16 @@
     "type": "mcq",
     "language": "en",
     "text": "Which of these letters is a vowel?",
-    "options": ["B", "E", "T", "M"],
+    "options": [
+      "B",
+      "E",
+      "T",
+      "M"
+    ],
     "correct_index": 1,
     "explanation": "E is a vowel (A, E, I, O, U are vowels).",
-    "status": "approved"
+    "status": "approved",
+    "hint": "Think of the 5 special vowel letters: A, E, I, O, U."
   },
   {
     "concept_id": "lit01_vowel_recognition",
@@ -371,10 +539,16 @@
     "type": "mcq",
     "language": "te",
     "text": "కింది అక్షరాలలో అచ్చు ఏది?",
-    "options": ["క", "అ", "గ", "చ"],
+    "options": [
+      "క",
+      "అ",
+      "గ",
+      "చ"
+    ],
     "correct_index": 1,
     "explanation": "'అ' అనేది అచ్చు. మిగిలినవి హల్లులు.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "అచ్చులు (అ నుండి అః వరకు) ధ్వనులను గుర్తుచేసుకోండి."
   },
   {
     "concept_id": "lit01_vowel_recognition",
@@ -384,10 +558,16 @@
     "type": "mcq",
     "language": "hi",
     "text": "इनमें से कौन सा वर्ण एक स्वर है?",
-    "options": ["क", "अ", "ग", "च"],
+    "options": [
+      "क",
+      "अ",
+      "ग",
+      "च"
+    ],
     "correct_index": 1,
     "explanation": "'अ' एक स्वर है। बाकी सब व्यंजन हैं।",
-    "status": "approved"
+    "status": "approved",
+    "hint": "स्वर (अ से अः) अक्षरों को याद करें।"
   },
   {
     "concept_id": "lit03_word_antonym_big",
@@ -397,10 +577,16 @@
     "type": "mcq",
     "language": "en",
     "text": "What is the opposite of the word 'Big'?",
-    "options": ["Tall", "Small", "Heavy", "Wide"],
+    "options": [
+      "Tall",
+      "Small",
+      "Heavy",
+      "Wide"
+    ],
     "correct_index": 1,
     "explanation": "The opposite (antonym) of 'Big' is 'Small'.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "Think of the opposite word, like day and night."
   },
   {
     "concept_id": "lit03_word_antonym_big",
@@ -410,10 +596,16 @@
     "type": "mcq",
     "language": "te",
     "text": "'పెద్ద' అనే పదానికి వ్యతిరేక పదం ఏమిటి?",
-    "options": ["పొడవు", "చిన్న", "బరువు", "వెడల్పు"],
+    "options": [
+      "పొడవు",
+      "చిన్న",
+      "బరువు",
+      "వెడల్పు"
+    ],
     "correct_index": 1,
     "explanation": "'పెద్ద' పదానికి వ్యతిరేక పదం 'చిన్న'.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "దీనికి వ్యతిరేక అర్థాన్ని ఇచ్చే పదాన్ని ఆలోచించండి."
   },
   {
     "concept_id": "lit03_word_antonym_big",
@@ -423,10 +615,16 @@
     "type": "mcq",
     "language": "hi",
     "text": "'बड़ा' शब्द का विलोम (उल्टा) शब्द क्या है?",
-    "options": ["लंबा", "छोटा", "भारी", "चौड़ा"],
+    "options": [
+      "लंबा",
+      "छोटा",
+      "भारी",
+      "चौड़ा"
+    ],
     "correct_index": 1,
     "explanation": "'बड़ा' का विलोम शब्द 'छोटा' होता है।",
-    "status": "approved"
+    "status": "approved",
+    "hint": "इसके विपरीत अर्थ वाले शब्द के बारे में सोचें।"
   },
   {
     "concept_id": "lit05_comp_rabbit_sun",
@@ -436,10 +634,16 @@
     "type": "mcq",
     "language": "en",
     "text": "Read the sentence: 'The white rabbit hopped near the green bush.' Where did the rabbit hop?",
-    "options": ["On the tree", "Near the green bush", "Inside the river", "Over the house"],
+    "options": [
+      "On the tree",
+      "Near the green bush",
+      "Inside the river",
+      "Over the house"
+    ],
     "correct_index": 1,
     "explanation": "The sentence clearly states that the rabbit hopped 'near the green bush'.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "Read the sentence again to spot where the rabbit hopped."
   },
   {
     "concept_id": "lit05_comp_rabbit_sun",
@@ -449,10 +653,16 @@
     "type": "mcq",
     "language": "te",
     "text": "వాక్యం చదవండి: 'తెల్ల కుందేలు పచ్చని పొద దగ్గర గెంతుతోంది.' కుందేలు ఎక్కడ గెంతుతోంది?",
-    "options": ["చెట్టు మీద", "పచ్చని పొద దగ్గర", "నది లోపల", "ఇంటి పైకి"],
+    "options": [
+      "చెట్టు మీద",
+      "పచ్చని పొద దగ్గర",
+      "నది లోపల",
+      "ఇంటి పైకి"
+    ],
     "correct_index": 1,
     "explanation": "వాక్యంలో కుందేలు 'పచ్చని పొద దగ్గర' గెంతుతోందని స్పష్టంగా ఉంది.",
-    "status": "approved"
+    "status": "approved",
+    "hint": "వాక్యాన్ని మళ్ళీ చదవండి: కుందేలు ఎక్కడికి గెంతు వేసింది?"
   },
   {
     "concept_id": "lit05_comp_rabbit_sun",
@@ -462,9 +672,15 @@
     "type": "mcq",
     "language": "hi",
     "text": "वाक्य पढ़ें: 'सफेद खरगोश हरी झाड़ी के पास कूद रहा था।' खरगोश कहाँ कूद रहा था?",
-    "options": ["पेड़ के ऊपर", "हरी झाड़ी के पास", "नदी के अंदर", "घर की छत पर"],
+    "options": [
+      "पेड़ के ऊपर",
+      "हरी झाड़ी के पास",
+      "नदी के अंदर",
+      "घर की छत पर"
+    ],
     "correct_index": 1,
     "explanation": "वाक्य में स्पष्ट रूप से लिखा है कि खरगोश 'हरी झाड़ी के पास' कूद रहा था।",
-    "status": "approved"
+    "status": "approved",
+    "hint": "वाक्य को फिर से पढ़ें: खरगोश कहाँ कूदा था?"
   }
 ]

@@ -81,6 +81,7 @@ class QuestionCreate(BaseModel):
     options: List[str] = Field(min_length=2, max_length=4)
     correct_index: int = Field(ge=0, le=3)
     explanation: Optional[str] = None
+    hint: Optional[str] = None
     source_snippet: Optional[str] = None
     concept_id: Optional[str] = None
 
@@ -92,6 +93,7 @@ class QuestionUpdate(BaseModel):
     correct_index: Optional[int] = None
     correct_answer_index: Optional[int] = None
     explanation: Optional[str] = None
+    hint: Optional[str] = None
     difficulty: Optional[int] = None
     skill_id: Optional[str] = None
     status: Optional[str] = None  # approved | rejected | draft
@@ -130,6 +132,7 @@ class QuestionDetailResponse(BaseModel):
     correct_index: int
     correct_answer_index: Optional[int] = None
     explanation: Optional[str] = None
+    hint: Optional[str] = None
     source_snippet: Optional[str] = None
     status: str
     created_at: datetime

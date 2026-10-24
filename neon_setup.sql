@@ -119,6 +119,7 @@ CREATE TABLE IF NOT EXISTS questions (
   options        JSONB NOT NULL,
   correct_index  SMALLINT NOT NULL,
   explanation    TEXT,
+  hint           TEXT,
   source_snippet TEXT,
   status         question_status NOT NULL DEFAULT 'draft',
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -433,3 +434,6 @@ INSERT INTO mastery (student_id, skill_id, score, attempts) VALUES
   ('s0000000-0000-0000-0000-000000000003', 'LIT-05', 0.3, 0)
 ON CONFLICT (student_id, skill_id) DO NOTHING;
 
+
+-- Migration: ensure hint column exists
+ALTER TABLE questions ADD COLUMN IF NOT EXISTS hint TEXT;

@@ -190,6 +190,7 @@ class Question(Base):
     options: Mapped[list] = mapped_column(JSON, nullable=False)
     correct_index: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     explanation: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    hint: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     source_snippet: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(SQLEnum(QuestionStatus, name="question_status", native_enum=True, values_callable=lambda x: [e.value for e in x]), default="draft", nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
